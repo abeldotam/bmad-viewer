@@ -69,7 +69,7 @@ const activeSprint = computed(() => props.sprints.find(s => s.status === 'active
         <span class="text-error">{{ breakdown.blocked }} Blocked</span>
       </div>
       <UProgress
-        :value="progress.percentage"
+        :model-value="progress.percentage"
         class="mt-3"
       />
     </UCard>

@@ -30,7 +30,7 @@ const { getEpicProgress } = useStoryStatus()
           {{ getEpicProgress(epic).done }}/{{ getEpicProgress(epic).total }} stories
         </p>
         <UProgress
-          :value="getEpicProgress(epic).percentage"
+          :model-value="getEpicProgress(epic).percentage"
           size="xs"
           class="mt-2"
         />

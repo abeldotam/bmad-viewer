@@ -26,6 +26,9 @@ onMounted(async () => {
 })
 
 provide('repoId', repoId)
+
+// Preload all repo data (documents, sprints, stories) in parallel
+provideRepoData(repoId)
 </script>
 
 <template>

@@ -1,40 +1,10 @@
 <script setup lang="ts">
-import type { Epic, Story } from '~~/shared/types/bmad'
-
-const repoId = inject<Ref<string | null>>('repoId')!
-const { fetchSprintStatus } = useGitHub()
-const { handleError } = useErrorHandler()
-
-const stories = ref<Story[]>([])
-const epics = ref<Epic[]>([])
-const loading = ref(true)
+const { stories, epics, loading } = useRepoData()
 
 const selectedEpic = ref<string>()
 const search = ref('')
 const statusFilter = ref('')
 const priorityFilter = ref('')
-
-onMounted(async () => {
-  try {
-    // Sprint status has all story metadata (works for both epic-based and sprint-based formats)
-    const sprintData = await fetchSprintStatus(repoId.value!)
-
-    stories.value = sprintData.sprints.flatMap(s => s.stories)
-
-    // Build epics from sprints (each sprint maps to an epic in epic-based format)
-    epics.value = sprintData.sprints.map(s => ({
-      id: s.goal,
-      title: s.goal,
-      description: '',
-      stories: s.stories,
-      filePath: ''
-    }))
-  } catch (e) {
-    handleError(e, 'Failed to load epics data')
-  } finally {
-    loading.value = false
-  }
-})
 
 const filteredStories = computed(() => {
   return stories.value.filter((story) => {

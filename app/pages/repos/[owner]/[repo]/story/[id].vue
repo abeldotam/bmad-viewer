@@ -7,35 +7,34 @@ const repo = computed(() => route.params.repo as string)
 const storyId = computed(() => route.params.id as string)
 const repoId = inject<Ref<string | null>>('repoId')!
 
-const { fetchSprintStatus, fetchFileContent } = useGitHub()
-const { handleError } = useErrorHandler()
+const { stories, loading: repoLoading, fetchFileContent } = useRepoData()
 
 const story = ref<Story | null>(null)
-const loading = ref(true)
+const contentLoading = ref(false)
 
-onMounted(async () => {
-  try {
-    const data = await fetchSprintStatus(repoId.value!)
-    const allStories = data.sprints.flatMap(s => s.stories)
-    const found = allStories.find(s => s.id === storyId.value)
+watch([repoLoading, storyId], async ([isLoading]) => {
+  if (isLoading) return
 
-    if (found) {
-      if (found.filePath) {
-        try {
-          const content = await fetchFileContent(repoId.value!, found.filePath)
-          found.content = content
-        } catch {
-          // Story file content not available
-        }
-      }
-      story.value = found
-    }
-  } catch (e) {
-    handleError(e, 'Failed to load story')
-  } finally {
-    loading.value = false
+  const found = stories.value.find(s => s.id === storyId.value)
+  if (!found) {
+    story.value = null
+    return
   }
-})
+
+  story.value = { ...found }
+
+  if (found.filePath) {
+    contentLoading.value = true
+    try {
+      const content = await fetchFileContent(found.filePath)
+      story.value = { ...found, content }
+    } catch {
+      // Story file content not available
+    } finally {
+      contentLoading.value = false
+    }
+  }
+}, { immediate: true })
 
 useHead({
   title: () => story.value ? `${story.value.id} - ${story.value.title}` : 'Story'
@@ -44,7 +43,7 @@ useHead({
 
 <template>
   <div
-    v-if="loading"
+    v-if="repoLoading"
     class="text-center py-20"
   >
     <UIcon
@@ -62,7 +61,19 @@ useHead({
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
       <div class="lg:col-span-2 space-y-6">
-        <StoryContent :content="story.content || 'No content available.'" />
+        <div
+          v-if="contentLoading"
+          class="text-center py-10"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="text-primary text-2xl animate-spin"
+          />
+        </div>
+        <StoryContent
+          v-else
+          :content="story.content || 'No content available.'"
+        />
         <CommentForm
           :story-id="story.id"
           :epic-id="story.epic"

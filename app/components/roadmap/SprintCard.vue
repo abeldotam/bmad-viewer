@@ -41,7 +41,7 @@ function getSprintBadgeColor(status: string): BadgeColor {
     </div>
 
     <UProgress
-      :value="progress.percentage"
+      :model-value="progress.percentage"
       class="mb-3"
     />
 

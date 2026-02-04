@@ -1,30 +1,15 @@
 <script setup lang="ts">
-import type { BmadDocument } from '~~/shared/types/bmad'
-
 const route = useRoute()
 const router = useRouter()
 const owner = computed(() => route.params.owner as string)
 const repo = computed(() => route.params.repo as string)
-const repoId = inject<Ref<string | null>>('repoId')!
 
-const { fetchDocumentTree, fetchFileContent } = useGitHub()
+const { documents, loading, fetchFileContent } = useRepoData()
 const { handleError } = useErrorHandler()
 
-const documents = ref<BmadDocument[]>([])
-const loading = ref(true)
 const selectedPath = computed(() => (route.query.path as string) || '')
 const content = ref('')
 const contentLoading = ref(false)
-
-onMounted(async () => {
-  try {
-    documents.value = await fetchDocumentTree(repoId.value!)
-  } catch (e) {
-    handleError(e, 'Failed to load document tree')
-  } finally {
-    loading.value = false
-  }
-})
 
 watch(selectedPath, async (path) => {
   if (!path) {
@@ -33,7 +18,7 @@ watch(selectedPath, async (path) => {
   }
   contentLoading.value = true
   try {
-    content.value = await fetchFileContent(repoId.value!, path)
+    content.value = await fetchFileContent(path)
   } catch (e) {
     handleError(e, 'Failed to load document')
     content.value = ''
