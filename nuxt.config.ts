@@ -9,6 +9,11 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  components: [{
+    path: '~/components',
+    pathPrefix: false
+  }],
+
   devtools: {
     enabled: true
   },

@@ -2,7 +2,7 @@ import { serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+  if (!user?.id) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
   const query = getQuery(event)
   const repoId = query.repoId as string
