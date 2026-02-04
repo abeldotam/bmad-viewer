@@ -26,11 +26,24 @@ export interface Epic {
   filePath: string
 }
 
+export type PullRequestState = 'open' | 'merged' | 'closed' | 'draft'
+
+export interface PullRequest {
+  number: number
+  title: string
+  state: PullRequestState
+  htmlUrl: string
+  headBranch: string
+  updatedAt: string
+}
+
 export interface Sprint {
   number: number
   goal: string
   status: SprintStatus
   stories: Story[]
+  branch?: string
+  pr?: PullRequest | null
 }
 
 export interface BmadDocument {

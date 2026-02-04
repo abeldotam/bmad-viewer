@@ -97,7 +97,8 @@ export function useBmadParser() {
           number: epicNum,
           goal: epic.name,
           status: mapEpicStatus(epic.status),
-          stories: epicStories
+          stories: epicStories,
+          branch: epic.branch
         }
       })
 

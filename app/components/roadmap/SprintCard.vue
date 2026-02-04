@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Sprint } from '~~/shared/types/bmad'
+import type { Sprint, PullRequestState } from '~~/shared/types/bmad'
 
 const props = defineProps<{
   sprint: Sprint
@@ -20,6 +20,26 @@ function getSprintBadgeColor(status: string): BadgeColor {
   }
   return colors[status] || 'neutral'
 }
+
+function getPrBadgeColor(state: PullRequestState): BadgeColor {
+  const colors: Record<PullRequestState, BadgeColor> = {
+    open: 'success',
+    draft: 'neutral',
+    merged: 'primary',
+    closed: 'error'
+  }
+  return colors[state]
+}
+
+function getPrIcon(state: PullRequestState): string {
+  const icons: Record<PullRequestState, string> = {
+    open: 'i-lucide-git-pull-request',
+    draft: 'i-lucide-git-pull-request-draft',
+    merged: 'i-lucide-git-merge',
+    closed: 'i-lucide-git-pull-request-closed'
+  }
+  return icons[state]
+}
 </script>
 
 <template>
@@ -33,11 +53,23 @@ function getSprintBadgeColor(status: string): BadgeColor {
           {{ sprint.goal }}
         </p>
       </div>
-      <UBadge
-        :label="sprint.status"
-        :color="getSprintBadgeColor(sprint.status)"
-        variant="subtle"
-      />
+      <div class="flex items-center gap-2">
+        <UBadge
+          v-if="sprint.pr"
+          :label="`#${sprint.pr.number}`"
+          :color="getPrBadgeColor(sprint.pr.state)"
+          :icon="getPrIcon(sprint.pr.state)"
+          variant="subtle"
+          :to="sprint.pr.htmlUrl"
+          target="_blank"
+          as="a"
+        />
+        <UBadge
+          :label="sprint.status"
+          :color="getSprintBadgeColor(sprint.status)"
+          variant="subtle"
+        />
+      </div>
     </div>
 
     <UProgress

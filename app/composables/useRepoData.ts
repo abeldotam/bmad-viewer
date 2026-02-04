@@ -1,4 +1,4 @@
-import type { BmadDocument, Sprint, Story, Epic } from '~~/shared/types/bmad'
+import type { BmadDocument, Sprint, Story, Epic, PullRequest } from '~~/shared/types/bmad'
 
 interface RepoData {
   documents: Ref<BmadDocument[]>
@@ -17,6 +17,7 @@ export function useRepoData(): RepoData {
 
 export function provideRepoData(repoId: Ref<string | null>) {
   const { fetchDocumentTree, fetchSprintStatus, fetchFileContent: rawFetchFileContent } = useGitHub()
+  const api = useApi()
   const { handleError } = useErrorHandler()
 
   const documents = ref<BmadDocument[]>([])
@@ -29,16 +30,42 @@ export function provideRepoData(repoId: Ref<string | null>) {
     return rawFetchFileContent(repoId.value!, path)
   }
 
+  async function fetchPulls(id: string): Promise<PullRequest[]> {
+    try {
+      return await api<PullRequest[]>('/api/github/pulls', { params: { repoId: id } })
+    } catch {
+      return []
+    }
+  }
+
   async function loadAll() {
     if (!repoId.value) return
     loading.value = true
     try {
-      const [tree, sprintData] = await Promise.all([
+      const [tree, sprintData, pulls] = await Promise.all([
         fetchDocumentTree(repoId.value!),
-        fetchSprintStatus(repoId.value!)
+        fetchSprintStatus(repoId.value!),
+        fetchPulls(repoId.value!)
       ])
 
       documents.value = tree
+
+      // Match PRs to sprints/epics by branch name
+      const prByBranch = new Map<string, PullRequest>()
+      for (const pr of pulls) {
+        prByBranch.set(pr.headBranch, pr)
+      }
+
+      for (const sprint of sprintData.sprints) {
+        if (sprint.branch) {
+          sprint.pr = prByBranch.get(sprint.branch) ?? null
+        }
+        // Update epic status based on PR state
+        if (sprint.pr?.state === 'open' || sprint.pr?.state === 'draft') {
+          sprint.status = 'active'
+        }
+      }
+
       sprints.value = sprintData.sprints
       stories.value = sprintData.sprints.flatMap(s => s.stories)
 
