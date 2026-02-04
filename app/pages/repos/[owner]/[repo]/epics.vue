@@ -2,7 +2,7 @@
 import type { Epic, Story } from '~~/shared/types/bmad'
 
 const repoId = inject<Ref<string | null>>('repoId')!
-const { fetchSprintStatus, fetchDocumentTree, fetchStories } = useGitHub()
+const { fetchSprintStatus } = useGitHub()
 const { handleError } = useErrorHandler()
 
 const stories = ref<Story[]>([])
@@ -16,53 +16,19 @@ const priorityFilter = ref('')
 
 onMounted(async () => {
   try {
-    const tree = await fetchDocumentTree(repoId.value!)
-
-    // Find story files from the document tree (primary data source)
-    const storyFiles = tree
-      .flatMap(function flatten(d): string[] {
-        if (d.type === 'file' && d.path.match(/story[_-]/i)) return [d.path]
-        return (d.children ?? []).flatMap(flatten)
-      })
-
-    if (storyFiles.length > 0) {
-      const parsed = await fetchStories(repoId.value!, storyFiles)
-      stories.value = parsed
-    }
-
-    // Supplement with sprint status data if available
+    // Sprint status has all story metadata (works for both epic-based and sprint-based formats)
     const sprintData = await fetchSprintStatus(repoId.value!)
-    if (sprintData.sprints.length > 0) {
-      const existingIds = new Set(stories.value.map(s => s.id))
-      for (const sprint of sprintData.sprints) {
-        for (const sprintStory of sprint.stories) {
-          if (existingIds.has(sprintStory.id)) {
-            // Update status from sprint data (more current)
-            const existing = stories.value.find(s => s.id === sprintStory.id)
-            if (existing) existing.status = sprintStory.status
-          } else {
-            stories.value.push(sprintStory)
-          }
-        }
-      }
-    }
 
-    // Build epics from stories
-    const epicMap = new Map<string, Epic>()
-    for (const story of stories.value) {
-      const epicKey = story.epic || 'Uncategorized'
-      if (!epicMap.has(epicKey)) {
-        epicMap.set(epicKey, {
-          id: epicKey,
-          title: epicKey,
-          description: '',
-          stories: [],
-          filePath: ''
-        })
-      }
-      epicMap.get(epicKey)!.stories.push(story)
-    }
-    epics.value = Array.from(epicMap.values())
+    stories.value = sprintData.sprints.flatMap(s => s.stories)
+
+    // Build epics from sprints (each sprint maps to an epic in epic-based format)
+    epics.value = sprintData.sprints.map(s => ({
+      id: s.goal,
+      title: s.goal,
+      description: '',
+      stories: s.stories,
+      filePath: ''
+    }))
   } catch (e) {
     handleError(e, 'Failed to load epics data')
   } finally {
@@ -114,10 +80,7 @@ const viewTabs = [
         class="text-muted text-4xl mb-4"
       />
       <p class="text-muted text-sm">
-        No stories found in <code>_bmad-output/</code>.
-      </p>
-      <p class="text-muted text-xs mt-1">
-        Story files should be named <code>story-*.md</code> with YAML frontmatter (id, title, epic, status, priority).
+        No stories found in <code>sprint-status.yaml</code>.
       </p>
     </div>
 

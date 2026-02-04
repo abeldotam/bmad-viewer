@@ -9,16 +9,11 @@ const sprints = ref<Sprint[]>([])
 const stories = ref<Story[]>([])
 const loading = ref(true)
 
-const noSprintFile = ref(false)
-
 onMounted(async () => {
   try {
     const data = await fetchSprintStatus(repoId.value!)
     sprints.value = data.sprints
     stories.value = data.sprints.flatMap(s => s.stories)
-    if (data.sprints.length === 0) {
-      noSprintFile.value = true
-    }
   } catch (e) {
     handleError(e, 'Failed to load roadmap data')
   } finally {
@@ -33,7 +28,7 @@ onMounted(async () => {
       Roadmap
     </h2>
     <p class="text-muted text-sm mb-6">
-      Sprint progress and timeline
+      Epic progress and timeline
     </p>
 
     <div
@@ -47,7 +42,7 @@ onMounted(async () => {
     </div>
 
     <div
-      v-else-if="noSprintFile"
+      v-else-if="sprints.length === 0"
       class="text-center py-20"
     >
       <UIcon
@@ -58,7 +53,7 @@ onMounted(async () => {
         No <code>sprint-status.yaml</code> found in <code>_bmad-output/</code>.
       </p>
       <p class="text-muted text-xs mt-1">
-        The roadmap view requires a sprint status file to display sprint data.
+        The roadmap view requires a sprint status file to display data.
       </p>
     </div>
 
@@ -73,7 +68,7 @@ onMounted(async () => {
 
       <div>
         <h3 class="text-lg font-semibold mb-4">
-          Sprint Timeline
+          Epic Timeline
         </h3>
         <SprintTimeline :sprints="sprints" />
       </div>

@@ -27,7 +27,7 @@ function getSprintBadgeColor(status: string): BadgeColor {
     <div class="flex items-start justify-between mb-3">
       <div>
         <h3 class="font-semibold">
-          Sprint {{ sprint.number }}
+          Epic {{ sprint.number }}
         </h3>
         <p class="text-sm text-muted">
           {{ sprint.goal }}

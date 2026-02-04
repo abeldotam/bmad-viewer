@@ -54,7 +54,7 @@ const activeSprint = computed(() => props.sprints.find(s => s.status === 'active
           {{ activeSprint?.number || '-' }}
         </p>
         <p class="text-sm text-muted">
-          Active Sprint
+          Active Epic
         </p>
       </div>
     </UCard>

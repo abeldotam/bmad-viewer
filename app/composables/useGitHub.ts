@@ -20,13 +20,32 @@ export function useGitHub() {
   }
 
   async function fetchSprintStatus(repoId: string) {
-    try {
-      const content = await fetchFileContent(repoId, '_bmad-output/sprint-status.yaml')
-      const { parseSprintStatus } = useBmadParser()
-      return parseSprintStatus(content)
-    } catch {
-      return { currentSprint: 0, sprints: [] }
+    const paths = [
+      '_bmad-output/implementation-artifacts/sprint-status.yaml',
+      '_bmad-output/sprint-status.yaml'
+    ]
+    for (const path of paths) {
+      try {
+        const content = await fetchFileContent(repoId, path)
+        const { parseSprintStatus } = useBmadParser()
+        const result = parseSprintStatus(content)
+
+        // Resolve story filePaths to full paths relative to sprint-status.yaml
+        const dir = path.substring(0, path.lastIndexOf('/'))
+        for (const sprint of result.sprints) {
+          for (const story of sprint.stories) {
+            if (story.filePath && !story.filePath.includes('/')) {
+              story.filePath = `${dir}/${story.filePath}`
+            }
+          }
+        }
+
+        return result
+      } catch {
+        continue
+      }
     }
+    return { currentSprint: 0, sprints: [] }
   }
 
   async function fetchStories(repoId: string, storyPaths: string[]) {
