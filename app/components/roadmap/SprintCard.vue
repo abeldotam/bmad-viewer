@@ -54,16 +54,19 @@ function getPrIcon(state: PullRequestState): string {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <UBadge
+        <a
           v-if="sprint.pr"
-          :label="`#${sprint.pr.number}`"
-          :color="getPrBadgeColor(sprint.pr.state)"
-          :icon="getPrIcon(sprint.pr.state)"
-          variant="subtle"
-          :to="sprint.pr.htmlUrl"
+          :href="sprint.pr.htmlUrl"
           target="_blank"
-          as="a"
-        />
+          class="no-underline"
+        >
+          <UBadge
+            :label="`#${sprint.pr.number}`"
+            :color="getPrBadgeColor(sprint.pr.state)"
+            :icon="getPrIcon(sprint.pr.state)"
+            variant="subtle"
+          />
+        </a>
         <UBadge
           :label="sprint.status"
           :color="getSprintBadgeColor(sprint.status)"
