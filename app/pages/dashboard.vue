@@ -31,18 +31,21 @@ definePageMeta({
 
 <template>
   <UContainer>
-    <UPageHeader
-      title="Dashboard"
-      description="Your connected BMAD repositories"
-    >
-      <template #actions>
-        <UButton
-          label="Add Repository"
-          icon="i-lucide-plus"
-          @click="showAddModal = true"
-        />
-      </template>
-    </UPageHeader>
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">
+          Dashboard
+        </h1>
+        <p class="text-muted text-sm mt-1">
+          Your connected BMAD repositories
+        </p>
+      </div>
+      <UButton
+        label="Add Repository"
+        icon="i-lucide-plus"
+        @click="showAddModal = true"
+      />
+    </div>
 
     <UBadge
       v-if="isMockData"
