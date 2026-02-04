@@ -20,9 +20,13 @@ export function useGitHub() {
   }
 
   async function fetchSprintStatus(repoId: string) {
-    const content = await fetchFileContent(repoId, '_bmad-output/sprint-status.yaml')
-    const { parseSprintStatus } = useBmadParser()
-    return parseSprintStatus(content)
+    try {
+      const content = await fetchFileContent(repoId, '_bmad-output/sprint-status.yaml')
+      const { parseSprintStatus } = useBmadParser()
+      return parseSprintStatus(content)
+    } catch {
+      return { currentSprint: 0, sprints: [] }
+    }
   }
 
   async function fetchStories(repoId: string, storyPaths: string[]) {
