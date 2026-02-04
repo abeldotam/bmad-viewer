@@ -31,22 +31,27 @@ interface StoryFrontmatter {
 
 export function useBmadParser() {
   function parseSprintStatus(yamlContent: string): { currentSprint: number, sprints: Sprint[] } {
-    const raw = yaml.load(yamlContent) as RawSprintStatus
+    const raw = yaml.load(yamlContent) as RawSprintStatus | null
+    if (!raw || !Array.isArray(raw.sprints)) {
+      return { currentSprint: 0, sprints: [] }
+    }
     return {
-      currentSprint: raw.current_sprint,
+      currentSprint: raw.current_sprint ?? 0,
       sprints: raw.sprints.map(s => ({
-        number: s.number,
-        goal: s.goal,
-        status: s.status as SprintStatus,
-        stories: s.stories.map(st => ({
-          id: st.id,
-          title: st.id,
-          epic: '',
-          status: st.status as StoryStatus,
-          priority: 'medium' as const,
-          estimate: 0,
-          filePath: ''
-        }))
+        number: s.number ?? 0,
+        goal: s.goal ?? '',
+        status: (s.status ?? 'planned') as SprintStatus,
+        stories: Array.isArray(s.stories)
+          ? s.stories.map(st => ({
+              id: st.id ?? '',
+              title: st.id ?? '',
+              epic: '',
+              status: (st.status ?? 'todo') as StoryStatus,
+              priority: 'medium' as const,
+              estimate: 0,
+              filePath: ''
+            }))
+          : []
       }))
     }
   }

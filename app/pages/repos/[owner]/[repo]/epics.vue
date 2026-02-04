@@ -16,41 +16,51 @@ const priorityFilter = ref('')
 
 onMounted(async () => {
   try {
-    const [sprintData, tree] = await Promise.all([
-      fetchSprintStatus(repoId.value!),
-      fetchDocumentTree(repoId.value!)
-    ])
+    const tree = await fetchDocumentTree(repoId.value!)
 
-    stories.value = sprintData.sprints.flatMap(s => s.stories)
-
+    // Find story files from the document tree (primary data source)
     const storyFiles = tree
       .flatMap(function flatten(d): string[] {
-        if (d.type === 'file' && d.path.includes('/story-')) return [d.path]
+        if (d.type === 'file' && d.path.match(/story[_-]/i)) return [d.path]
         return (d.children ?? []).flatMap(flatten)
       })
 
     if (storyFiles.length > 0) {
       const parsed = await fetchStories(repoId.value!, storyFiles)
-      const sprintIds = new Set(stories.value.map(s => s.id))
-      for (const story of parsed) {
-        if (!sprintIds.has(story.id)) {
-          stories.value.push(story)
+      stories.value = parsed
+    }
+
+    // Supplement with sprint status data if available
+    const sprintData = await fetchSprintStatus(repoId.value!)
+    if (sprintData.sprints.length > 0) {
+      const existingIds = new Set(stories.value.map(s => s.id))
+      for (const sprint of sprintData.sprints) {
+        for (const sprintStory of sprint.stories) {
+          if (existingIds.has(sprintStory.id)) {
+            // Update status from sprint data (more current)
+            const existing = stories.value.find(s => s.id === sprintStory.id)
+            if (existing) existing.status = sprintStory.status
+          } else {
+            stories.value.push(sprintStory)
+          }
         }
       }
     }
 
+    // Build epics from stories
     const epicMap = new Map<string, Epic>()
     for (const story of stories.value) {
-      if (!epicMap.has(story.epic)) {
-        epicMap.set(story.epic, {
-          id: story.epic,
-          title: story.epic,
+      const epicKey = story.epic || 'Uncategorized'
+      if (!epicMap.has(epicKey)) {
+        epicMap.set(epicKey, {
+          id: epicKey,
+          title: epicKey,
           description: '',
           stories: [],
           filePath: ''
         })
       }
-      epicMap.get(story.epic)!.stories.push(story)
+      epicMap.get(epicKey)!.stories.push(story)
     }
     epics.value = Array.from(epicMap.values())
   } catch (e) {
@@ -93,6 +103,22 @@ const viewTabs = [
         name="i-lucide-loader-2"
         class="text-primary text-4xl animate-spin"
       />
+    </div>
+
+    <div
+      v-else-if="stories.length === 0"
+      class="text-center py-20"
+    >
+      <UIcon
+        name="i-lucide-file-search"
+        class="text-muted text-4xl mb-4"
+      />
+      <p class="text-muted text-sm">
+        No stories found in <code>_bmad-output/</code>.
+      </p>
+      <p class="text-muted text-xs mt-1">
+        Story files should be named <code>story-*.md</code> with YAML frontmatter (id, title, epic, status, priority).
+      </p>
     </div>
 
     <div

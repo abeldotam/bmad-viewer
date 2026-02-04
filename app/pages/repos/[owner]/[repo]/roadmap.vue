@@ -9,11 +9,16 @@ const sprints = ref<Sprint[]>([])
 const stories = ref<Story[]>([])
 const loading = ref(true)
 
+const noSprintFile = ref(false)
+
 onMounted(async () => {
   try {
     const data = await fetchSprintStatus(repoId.value!)
     sprints.value = data.sprints
     stories.value = data.sprints.flatMap(s => s.stories)
+    if (data.sprints.length === 0) {
+      noSprintFile.value = true
+    }
   } catch (e) {
     handleError(e, 'Failed to load roadmap data')
   } finally {
@@ -39,6 +44,22 @@ onMounted(async () => {
         name="i-lucide-loader-2"
         class="text-primary text-4xl animate-spin"
       />
+    </div>
+
+    <div
+      v-else-if="noSprintFile"
+      class="text-center py-20"
+    >
+      <UIcon
+        name="i-lucide-calendar-off"
+        class="text-muted text-4xl mb-4"
+      />
+      <p class="text-muted text-sm">
+        No <code>sprint-status.yaml</code> found in <code>_bmad-output/</code>.
+      </p>
+      <p class="text-muted text-xs mt-1">
+        The roadmap view requires a sprint status file to display sprint data.
+      </p>
     </div>
 
     <div
