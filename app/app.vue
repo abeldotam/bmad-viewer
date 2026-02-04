@@ -26,8 +26,6 @@ const isRepoContext = computed(() => route.path.startsWith('/repos/'))
 
 const { user, logout } = useAuth()
 
-const showNewStoryModal = ref(false)
-
 const userMenuItems = computed(() => [
   [{
     label: user.value?.email || 'Account',
@@ -47,78 +45,73 @@ const userMenuItems = computed(() => [
 </script>
 
 <template>
-  <UApp>
-    <UHeader>
-      <template #left>
-        <NuxtLink
-          to="/"
-          class="flex items-center gap-2"
-        >
-          <BmadLogo />
-        </NuxtLink>
+  <div class="min-h-screen flex flex-col">
+    <header class="sticky top-0 z-50 border-b border-default bg-default/80 backdrop-blur">
+      <div class="container mx-auto px-4 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <NuxtLink
+            to="/"
+            class="flex items-center gap-2"
+          >
+            <BmadLogo />
+          </NuxtLink>
 
-        <RepoNavigation
-          v-if="isRepoContext"
-          class="ml-6"
-        />
-      </template>
+          <RepoNavigation
+            v-if="isRepoContext"
+            class="ml-2"
+          />
+        </div>
 
-      <template #right>
-        <UColorModeButton />
+        <div class="flex items-center gap-2">
+          <UColorModeButton />
 
-        <UButton
-          to="https://github.com/abel-music/bmad-viewer"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
+          <UButton
+            to="https://github.com/abeldotam/bmad-viewer"
+            target="_blank"
+            icon="i-simple-icons-github"
+            aria-label="GitHub"
+            color="neutral"
+            variant="ghost"
+          />
 
-        <template v-if="user">
-          <UDropdownMenu :items="userMenuItems">
-            <UAvatar
-              :alt="user.email || 'User'"
-              size="sm"
-              class="cursor-pointer"
-            />
-          </UDropdownMenu>
-        </template>
-        <UButton
-          v-else
-          to="/login"
-          label="Sign in"
-          variant="subtle"
-          size="sm"
-        />
-      </template>
-    </UHeader>
+          <template v-if="user">
+            <UDropdownMenu :items="userMenuItems">
+              <UAvatar
+                :alt="user.email || 'User'"
+                size="sm"
+                class="cursor-pointer"
+              />
+            </UDropdownMenu>
+          </template>
+          <UButton
+            v-else
+            to="/login"
+            label="Sign in"
+            variant="subtle"
+            size="sm"
+          />
+        </div>
+      </div>
+    </header>
 
-    <UMain>
+    <main class="flex-1 container mx-auto px-4 py-8">
       <NuxtPage />
-    </UMain>
+    </main>
 
-    <UButton
+    <div
       v-if="isRepoContext"
-      icon="i-lucide-plus"
-      label="New Story"
       class="fixed bottom-6 right-6 z-50 shadow-lg"
-      size="lg"
-      @click="showNewStoryModal = true"
-    />
+    >
+      <NewStoryModal />
+    </div>
 
-    <NewStoryModal v-model:open="showNewStoryModal" />
-
-    <UFooter>
-      <template #left>
+    <footer class="border-t border-default py-4">
+      <div class="container mx-auto px-4 flex items-center justify-between">
         <p class="text-sm text-muted">
           BMAD Viewer &copy; {{ new Date().getFullYear() }}
         </p>
-      </template>
-
-      <template #right>
         <UColorModeButton size="xs" />
-      </template>
-    </UFooter>
-  </UApp>
+      </div>
+    </footer>
+  </div>
 </template>
