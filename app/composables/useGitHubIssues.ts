@@ -1,11 +1,13 @@
 import type { GitHubIssue, IssueType, Priority } from '~~/shared/types/bmad'
 
 export function useGitHubIssues() {
+  const api = useApi()
+
   async function createComment(repoId: string, storyId: string, epicId: string, comment: string) {
     const body = buildCommentIssueBody(storyId, epicId, comment)
     const labels = getCommentLabels(storyId, epicId)
 
-    return await $fetch('/api/github/issues', {
+    return await api('/api/github/issues', {
       method: 'POST',
       body: {
         repoId,
@@ -27,7 +29,7 @@ export function useGitHubIssues() {
     const labels = getNewStoryLabels(params.type, params.priority)
     const prefix = params.type === 'bug' ? '[BMAD Bug]' : params.type === 'improvement' ? '[BMAD Improvement]' : '[NEW STORY]'
 
-    return await $fetch('/api/github/issues', {
+    return await api('/api/github/issues', {
       method: 'POST',
       body: {
         repoId,
@@ -39,7 +41,7 @@ export function useGitHubIssues() {
   }
 
   async function fetchLinkedIssues(repoId: string, storyId?: string): Promise<GitHubIssue[]> {
-    return await $fetch<GitHubIssue[]>('/api/github/issues', {
+    return await api<GitHubIssue[]>('/api/github/issues', {
       params: { repoId, storyId }
     })
   }

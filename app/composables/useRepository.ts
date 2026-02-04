@@ -1,6 +1,7 @@
 import type { Repository } from '~~/shared/types/bmad'
 
 export function useRepository() {
+  const api = useApi()
   const repos = useState<Repository[]>('repos', () => [])
   const loading = useState('repos-loading', () => false)
   const { handleError } = useErrorHandler()
@@ -8,7 +9,7 @@ export function useRepository() {
   async function fetchRepos() {
     loading.value = true
     try {
-      const data = await $fetch<Repository[]>('/api/repos')
+      const data = await api<Repository[]>('/api/repos')
       repos.value = data
     } catch (e: unknown) {
       handleError(e, 'Failed to load repositories')
@@ -18,7 +19,7 @@ export function useRepository() {
   }
 
   async function addRepo(owner: string, name: string, token?: string) {
-    const data = await $fetch<Repository>('/api/repos', {
+    const data = await api<Repository>('/api/repos', {
       method: 'POST',
       body: { owner, name, token }
     })
@@ -27,7 +28,7 @@ export function useRepository() {
   }
 
   async function deleteRepo(id: string) {
-    await $fetch(`/api/repos/${id}`, { method: 'DELETE' })
+    await api(`/api/repos/${id}`, { method: 'DELETE' })
     repos.value = repos.value.filter(r => r.id !== id)
   }
 
