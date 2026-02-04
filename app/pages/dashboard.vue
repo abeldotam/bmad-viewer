@@ -1,16 +1,18 @@
 <script setup lang="ts">
-const { repos, loading, fetchRepos, addRepo, deleteRepo } = useRepository()
+const { repos, loading, fetchRepos, deleteRepo } = useRepository()
+const { handleError, handleSuccess } = useErrorHandler()
 
 onMounted(() => {
   fetchRepos()
 })
 
-async function handleAdd(data: { owner: string, name: string, token?: string }) {
-  await addRepo(data.owner, data.name, data.token)
-}
-
 async function handleDelete(id: string) {
-  await deleteRepo(id)
+  try {
+    await deleteRepo(id)
+    handleSuccess('Repository removed')
+  } catch (e: unknown) {
+    handleError(e, 'Failed to delete repository')
+  }
 }
 
 definePageMeta({
@@ -29,7 +31,7 @@ definePageMeta({
           Your connected BMAD repositories
         </p>
       </div>
-      <AddRepoModal @submit="handleAdd" />
+      <AddRepoModal />
     </div>
 
     <div
@@ -56,7 +58,7 @@ definePageMeta({
       <p class="text-muted text-sm mb-6">
         Connect a GitHub repository with a _bmad-output/ directory to get started.
       </p>
-      <AddRepoModal @submit="handleAdd" />
+      <AddRepoModal />
     </div>
 
     <div

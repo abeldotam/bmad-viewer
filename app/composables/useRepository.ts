@@ -3,12 +3,15 @@ import type { Repository } from '~~/shared/types/bmad'
 export function useRepository() {
   const repos = useState<Repository[]>('repos', () => [])
   const loading = useState('repos-loading', () => false)
+  const { handleError } = useErrorHandler()
 
   async function fetchRepos() {
     loading.value = true
     try {
       const data = await $fetch<Repository[]>('/api/repos')
       repos.value = data
+    } catch (e: unknown) {
+      handleError(e, 'Failed to load repositories')
     } finally {
       loading.value = false
     }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-const emit = defineEmits<{
-  submit: [{ owner: string, name: string, token?: string }]
-}>()
+const { addRepo } = useRepository()
+const { handleSuccess } = useErrorHandler()
 
 const open = ref(false)
 
@@ -19,11 +18,8 @@ async function handleSubmit() {
   loading.value = true
   error.value = ''
   try {
-    emit('submit', {
-      owner: owner.value,
-      name: name.value,
-      token: token.value || undefined
-    })
+    await addRepo(owner.value, name.value, token.value || undefined)
+    handleSuccess(`Repository ${owner.value}/${name.value} added successfully`)
     owner.value = ''
     name.value = ''
     token.value = ''
