@@ -35,16 +35,20 @@ const priorityOptions = [
       class="flex-1"
     />
     <USelectMenu
-      v-model="statusFilter"
+      :model-value="statusFilter"
       :items="statusOptions"
       value-key="value"
+      placeholder="All Statuses"
       class="w-full md:w-48"
+      @update:model-value="statusFilter = $event"
     />
     <USelectMenu
-      v-model="priorityFilter"
+      :model-value="priorityFilter"
       :items="priorityOptions"
       value-key="value"
+      placeholder="All Priorities"
       class="w-full md:w-48"
+      @update:model-value="priorityFilter = $event"
     />
   </div>
 </template>

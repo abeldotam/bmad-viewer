@@ -55,11 +55,6 @@ const userMenuItems = computed(() => [
           >
             <BmadLogo />
           </NuxtLink>
-
-          <RepoNavigation
-            v-if="isRepoContext"
-            class="ml-2"
-          />
         </div>
 
         <div class="flex items-center gap-2">
