@@ -40,6 +40,7 @@ export default defineNuxtConfig({
       include: undefined,
       exclude: ['/', '/login', '/register'],
       saveRedirectToCookie: true
-    }
+    },
+    useSsrCookies: false
   }
 })

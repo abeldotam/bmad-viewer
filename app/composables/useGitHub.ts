@@ -1,8 +1,10 @@
 import type { BmadDocument } from '~~/shared/types/bmad'
 
 export function useGitHub() {
+  const api = useApi()
+
   async function fetchDocumentTree(repoId: string): Promise<BmadDocument[]> {
-    const files = await $fetch<{ path: string, type: 'file' | 'directory' }[]>('/api/github/tree', {
+    const files = await api<{ path: string, type: 'file' | 'directory' }[]>('/api/github/tree', {
       params: { repoId }
     })
 
@@ -11,7 +13,7 @@ export function useGitHub() {
   }
 
   async function fetchFileContent(repoId: string, path: string): Promise<string> {
-    const data = await $fetch<{ content: string, fromCache: boolean }>('/api/github/contents', {
+    const data = await api<{ content: string, fromCache: boolean }>('/api/github/contents', {
       params: { repoId, path }
     })
     return data.content

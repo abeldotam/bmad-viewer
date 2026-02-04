@@ -1,7 +1,5 @@
-import { serverSupabaseUser } from '#supabase/server'
-
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
+  const user = await getAuthUser(event)
   if (!user?.id) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
   const id = getRouterParam(event, 'id')
