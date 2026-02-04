@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import type { IssueType, Priority } from '~~/shared/types/bmad'
 
-const open = ref(false)
-const { epics } = useMockData()
+const repoId = inject<Ref<string | null>>('repoId', ref(null))
 
+const { createNewStory } = useGitHubIssues()
+const { handleError, handleSuccess } = useErrorHandler()
+
+const open = ref(false)
 const type = ref<IssueType>('feature')
 const title = ref('')
 const description = ref('')
 const epic = ref('')
 const priority = ref<Priority>('medium')
 const loading = ref(false)
-const error = ref('')
-const success = ref(false)
 
 const typeOptions = [
   { label: 'Feature', value: 'feature' },
@@ -25,27 +26,24 @@ const priorityOptions = [
   { label: 'Low', value: 'low' }
 ]
 
-const epicOptions = computed(() =>
-  epics.map(e => ({ label: e.title, value: e.id }))
-)
-
 async function handleSubmit() {
-  if (!title.value || !description.value) return
+  if (!title.value || !description.value || !repoId?.value) return
   loading.value = true
-  error.value = ''
-  success.value = false
 
   try {
-    // In mock mode, just show success
-    success.value = true
+    await createNewStory(repoId.value, {
+      type: type.value,
+      title: title.value,
+      description: description.value,
+      epic: epic.value,
+      priority: priority.value
+    })
+    handleSuccess('Story proposal submitted as GitHub issue!')
     title.value = ''
     description.value = ''
-    setTimeout(() => {
-      open.value = false
-      success.value = false
-    }, 1500)
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to create story'
+    open.value = false
+  } catch (e) {
+    handleError(e, 'Failed to create story')
   } finally {
     loading.value = false
   }
@@ -96,11 +94,9 @@ async function handleSubmit() {
           </UFormField>
 
           <UFormField label="Epic">
-            <USelectMenu
+            <UInput
               v-model="epic"
-              :items="epicOptions"
-              value-key="value"
-              placeholder="Select an epic"
+              placeholder="Epic ID (e.g. E-001)"
             />
           </UFormField>
 
@@ -111,19 +107,6 @@ async function handleSubmit() {
               value-key="value"
             />
           </UFormField>
-
-          <p
-            v-if="error"
-            class="text-error text-sm"
-          >
-            {{ error }}
-          </p>
-          <p
-            v-if="success"
-            class="text-success text-sm"
-          >
-            Story proposal submitted!
-          </p>
 
           <div class="flex justify-end gap-2">
             <UButton

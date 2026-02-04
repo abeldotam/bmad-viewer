@@ -1,21 +1,59 @@
 <script setup lang="ts">
+import type { Story } from '~~/shared/types/bmad'
+
 const route = useRoute()
 const owner = computed(() => route.params.owner as string)
 const repo = computed(() => route.params.repo as string)
 const storyId = computed(() => route.params.id as string)
+const repoId = inject<Ref<string | null>>('repoId')!
 
-const { getStory, getEpic } = useMockData()
+const { fetchSprintStatus, fetchFileContent } = useGitHub()
+const { handleError } = useErrorHandler()
 
-const story = computed(() => getStory(storyId.value))
-const epic = computed(() => story.value ? getEpic(story.value.epic) : undefined)
+const story = ref<Story | null>(null)
+const loading = ref(true)
+
+onMounted(async () => {
+  try {
+    const data = await fetchSprintStatus(repoId.value!)
+    const allStories = data.sprints.flatMap(s => s.stories)
+    const found = allStories.find(s => s.id === storyId.value)
+
+    if (found) {
+      if (found.filePath) {
+        try {
+          const content = await fetchFileContent(repoId.value!, found.filePath)
+          found.content = content
+        } catch {
+          // Story file content not available
+        }
+      }
+      story.value = found
+    }
+  } catch (e) {
+    handleError(e, 'Failed to load story')
+  } finally {
+    loading.value = false
+  }
+})
 
 useHead({
-  title: () => story.value ? `${story.value.id} - ${story.value.title}` : 'Story not found'
+  title: () => story.value ? `${story.value.id} - ${story.value.title}` : 'Story'
 })
 </script>
 
 <template>
-  <div v-if="story">
+  <div
+    v-if="loading"
+    class="text-center py-20"
+  >
+    <UIcon
+      name="i-lucide-loader-2"
+      class="text-primary text-4xl animate-spin"
+    />
+  </div>
+
+  <div v-else-if="story">
     <StoryHeader
       :story="story"
       :repo-owner="owner"
@@ -28,16 +66,17 @@ useHead({
         <CommentForm
           :story-id="story.id"
           :epic-id="story.epic"
+          :repo-id="repoId!"
         />
       </div>
 
       <div class="space-y-4">
-        <StoryMetadata
-          :story="story"
-          :epic="epic"
-        />
+        <StoryMetadata :story="story" />
         <RelatedPRs />
-        <LinkedIssues />
+        <LinkedIssues
+          :repo-id="repoId!"
+          :story-id="story.id"
+        />
       </div>
     </div>
   </div>

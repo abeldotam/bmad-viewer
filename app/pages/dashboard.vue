@@ -1,17 +1,8 @@
 <script setup lang="ts">
 const { repos, loading, fetchRepos, addRepo, deleteRepo } = useRepository()
-const { repositories: mockRepos } = useMockData()
-
-const displayRepos = computed(() => {
-  return repos.value.length > 0 ? repos.value : mockRepos
-})
-
-const isMockData = computed(() => repos.value.length === 0)
 
 onMounted(() => {
-  fetchRepos().catch(() => {
-    // Silently fall back to mock data
-  })
+  fetchRepos()
 })
 
 async function handleAdd(data: { owner: string, name: string, token?: string }) {
@@ -41,14 +32,6 @@ definePageMeta({
       <AddRepoModal @submit="handleAdd" />
     </div>
 
-    <UBadge
-      v-if="isMockData"
-      label="Showing demo data"
-      color="warning"
-      variant="subtle"
-      class="mt-2"
-    />
-
     <div
       v-if="loading"
       class="text-center py-20"
@@ -60,7 +43,7 @@ definePageMeta({
     </div>
 
     <div
-      v-else-if="displayRepos.length === 0"
+      v-else-if="repos.length === 0"
       class="text-center py-20"
     >
       <UIcon
@@ -81,7 +64,7 @@ definePageMeta({
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"
     >
       <RepoCard
-        v-for="repo in displayRepos"
+        v-for="repo in repos"
         :key="repo.id"
         :repo="repo"
         @delete="handleDelete"

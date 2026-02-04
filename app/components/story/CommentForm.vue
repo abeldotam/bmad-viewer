@@ -1,31 +1,33 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   storyId: string
   epicId: string
+  repoId: string
 }>()
 
 const emit = defineEmits<{
   submitted: []
 }>()
 
+const { createComment } = useGitHubIssues()
+const { handleError } = useErrorHandler()
+
 const comment = ref('')
 const loading = ref(false)
-const error = ref('')
 const success = ref(false)
 
 async function handleSubmit() {
   if (!comment.value.trim()) return
   loading.value = true
-  error.value = ''
   success.value = false
 
   try {
-    // In mock mode, just show success
+    await createComment(props.repoId, props.storyId, props.epicId, comment.value)
     success.value = true
     comment.value = ''
     emit('submitted')
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to create comment'
+  } catch (e) {
+    handleError(e, 'Failed to create comment')
   } finally {
     loading.value = false
   }
@@ -51,12 +53,6 @@ async function handleSubmit() {
         :rows="3"
       />
 
-      <p
-        v-if="error"
-        class="text-error text-xs"
-      >
-        {{ error }}
-      </p>
       <p
         v-if="success"
         class="text-success text-xs"
