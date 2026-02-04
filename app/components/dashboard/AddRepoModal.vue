@@ -1,9 +1,9 @@
 <script setup lang="ts">
-const open = defineModel<boolean>('open', { default: false })
-
 const emit = defineEmits<{
   submit: [{ owner: string, name: string, token?: string }]
 }>()
+
+const open = ref(false)
 
 const owner = ref('')
 const name = ref('')
@@ -38,6 +38,11 @@ async function handleSubmit() {
 
 <template>
   <UModal v-model:open="open">
+    <UButton
+      label="Add Repository"
+      icon="i-lucide-plus"
+    />
+
     <template #header>
       <h3 class="font-semibold">
         Add Repository

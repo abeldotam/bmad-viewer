@@ -2,8 +2,6 @@
 const { repos, loading, fetchRepos, addRepo, deleteRepo } = useRepository()
 const { repositories: mockRepos } = useMockData()
 
-const showAddModal = ref(false)
-
 const displayRepos = computed(() => {
   return repos.value.length > 0 ? repos.value : mockRepos
 })
@@ -40,11 +38,7 @@ definePageMeta({
           Your connected BMAD repositories
         </p>
       </div>
-      <UButton
-        label="Add Repository"
-        icon="i-lucide-plus"
-        @click="showAddModal = true"
-      />
+      <AddRepoModal @submit="handleAdd" />
     </div>
 
     <UBadge
@@ -79,11 +73,7 @@ definePageMeta({
       <p class="text-muted text-sm mb-6">
         Connect a GitHub repository with a _bmad-output/ directory to get started.
       </p>
-      <UButton
-        label="Add Repository"
-        icon="i-lucide-plus"
-        @click="showAddModal = true"
-      />
+      <AddRepoModal @submit="handleAdd" />
     </div>
 
     <div
@@ -97,10 +87,5 @@ definePageMeta({
         @delete="handleDelete"
       />
     </div>
-
-    <AddRepoModal
-      v-model:open="showAddModal"
-      @submit="handleAdd"
-    />
   </UContainer>
 </template>
