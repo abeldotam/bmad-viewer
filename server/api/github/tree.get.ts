@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
 
   const token = repo.github_token_encrypted ? decrypt(repo.github_token_encrypted as string) : ''
   const octokit = createOctokit(token)
-  const branch = (repo.default_branch as string) || 'main'
+  const branch = (repo.default_branch as string | null) || undefined
 
   try {
     const files = await listBmadFiles(octokit, repo.owner as string, repo.name as string, branch)

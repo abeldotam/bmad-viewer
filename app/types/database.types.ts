@@ -10,7 +10,7 @@ export interface Database {
           owner: string
           name: string
           github_token_encrypted: string | null
-          default_branch: string
+          default_branch: string | null
           last_synced_at: string | null
           created_at: string
         }
@@ -20,7 +20,7 @@ export interface Database {
           owner: string
           name: string
           github_token_encrypted?: string | null
-          default_branch?: string
+          default_branch?: string | null
           last_synced_at?: string | null
           created_at?: string
         }
@@ -30,7 +30,7 @@ export interface Database {
           owner?: string
           name?: string
           github_token_encrypted?: string | null
-          default_branch?: string
+          default_branch?: string | null
           last_synced_at?: string | null
           created_at?: string
         }

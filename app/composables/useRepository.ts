@@ -27,7 +27,7 @@ export function useRepository() {
     return data
   }
 
-  async function updateBranch(id: string, branch: string) {
+  async function updateBranch(id: string, branch: string | null) {
     await api(`/api/repos/${id}`, {
       method: 'PATCH',
       body: { default_branch: branch }

@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'owner and name are required' })
   }
 
-  let defaultBranch = 'main'
+  let defaultBranch: string | null = null
   if (body.token) {
     try {
       const octokit = createOctokit(body.token)
