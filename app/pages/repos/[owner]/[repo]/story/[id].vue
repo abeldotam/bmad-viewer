@@ -11,6 +11,7 @@ const { stories, sprints, loading: repoLoading, fetchFileContent } = useRepoData
 
 const story = ref<Story | null>(null)
 const contentLoading = ref(false)
+const contentError = ref('')
 
 const storyPRs = computed(() => {
   if (!story.value) return []
@@ -28,14 +29,18 @@ watch([repoLoading, storyId], async ([isLoading]) => {
   }
 
   story.value = { ...found }
+  contentError.value = ''
 
   if (found.filePath) {
     contentLoading.value = true
     try {
       const content = await fetchFileContent(found.filePath)
       story.value = { ...found, content }
-    } catch {
-      // Story file content not available
+    } catch (e: unknown) {
+      const msg = e && typeof e === 'object' && 'statusMessage' in e
+        ? String((e as { statusMessage: string }).statusMessage)
+        : String(e)
+      contentError.value = `Failed to load content: ${msg}`
     } finally {
       contentLoading.value = false
     }
@@ -75,6 +80,15 @@ useHead({
             name="i-lucide-loader-2"
             class="text-primary text-2xl animate-spin"
           />
+        </div>
+        <div
+          v-else-if="contentError"
+          class="rounded-md bg-error/10 text-error px-4 py-3 text-sm"
+        >
+          {{ contentError }}
+          <p class="text-xs text-muted mt-1">
+            filePath: {{ story.filePath }}
+          </p>
         </div>
         <StoryContent
           v-else
