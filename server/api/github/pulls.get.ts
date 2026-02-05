@@ -20,21 +20,28 @@ export default defineEventHandler(async (event) => {
   const token = repo.github_token_encrypted ? decrypt(repo.github_token_encrypted) : ''
   const octokit = createOctokit(token)
 
-  const { data: pulls } = await octokit.rest.pulls.list({
-    owner: repo.owner,
-    repo: repo.name,
-    state: 'all',
-    sort: 'updated',
-    direction: 'desc',
-    per_page: 50
-  })
+  try {
+    const { data: pulls } = await octokit.rest.pulls.list({
+      owner: repo.owner,
+      repo: repo.name,
+      state: 'all',
+      sort: 'updated',
+      direction: 'desc',
+      per_page: 50
+    })
 
-  return pulls.map(pr => ({
-    number: pr.number,
-    title: pr.title,
-    state: pr.draft ? 'draft' : pr.merged_at ? 'merged' : pr.state,
-    htmlUrl: pr.html_url,
-    headBranch: pr.head.ref,
-    updatedAt: pr.updated_at
-  }))
+    return pulls.map(pr => ({
+      number: pr.number,
+      title: pr.title,
+      state: pr.draft ? 'draft' : pr.merged_at ? 'merged' : pr.state,
+      htmlUrl: pr.html_url,
+      headBranch: pr.head.ref,
+      updatedAt: pr.updated_at
+    }))
+  } catch (e) {
+    if (isGitHubAuthError(e)) {
+      throw createError({ statusCode: 403, statusMessage: 'GitHub token invalid or expired' })
+    }
+    throw e
+  }
 })

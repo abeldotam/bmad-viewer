@@ -12,21 +12,21 @@ export function useGitHub() {
     return buildDocumentTree(files)
   }
 
-  async function fetchFileContent(repoId: string, path: string): Promise<string> {
+  async function fetchFileContent(repoId: string, path: string, noCache = false): Promise<string> {
     const data = await api<{ content: string, fromCache: boolean }>('/api/github/contents', {
-      params: { repoId, path }
+      params: { repoId, path, ...(noCache && { noCache: 'true' }) }
     })
     return data.content
   }
 
-  async function fetchSprintStatus(repoId: string) {
+  async function fetchSprintStatus(repoId: string, noCache = false) {
     const paths = [
       '_bmad-output/implementation-artifacts/sprint-status.yaml',
       '_bmad-output/sprint-status.yaml'
     ]
     for (const path of paths) {
       try {
-        const content = await fetchFileContent(repoId, path)
+        const content = await fetchFileContent(repoId, path, noCache)
         const { parseSprintStatus } = useBmadParser()
         const result = parseSprintStatus(content)
 
@@ -41,7 +41,10 @@ export function useGitHub() {
         }
 
         return result
-      } catch {
+      } catch (e: unknown) {
+        if (e && typeof e === 'object' && 'statusCode' in e && (e as { statusCode: number }).statusCode === 403) {
+          throw e
+        }
         continue
       }
     }

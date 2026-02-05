@@ -1,5 +1,10 @@
 import { Octokit } from 'octokit'
 
+export function isGitHubAuthError(e: unknown): boolean {
+  return !!e && typeof e === 'object' && 'status' in e
+    && ((e as { status: number }).status === 401 || (e as { status: number }).status === 403)
+}
+
 export function createOctokit(token: string) {
   return new Octokit({ auth: token })
 }
@@ -33,7 +38,8 @@ export async function listBmadFiles(octokit: Octokit, owner: string, repo: strin
         type: item.type === 'tree' ? 'directory' as const : 'file' as const,
         sha: item.sha
       }))
-  } catch {
+  } catch (e) {
+    if (isGitHubAuthError(e)) throw e
     return []
   }
 }
