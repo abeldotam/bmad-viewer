@@ -27,6 +27,15 @@ export function useRepository() {
     return data
   }
 
+  async function updateBranch(id: string, branch: string) {
+    await api(`/api/repos/${id}`, {
+      method: 'PATCH',
+      body: { default_branch: branch }
+    })
+    const repo = repos.value.find(r => r.id === id)
+    if (repo) repo.defaultBranch = branch
+  }
+
   async function deleteRepo(id: string) {
     await api(`/api/repos/${id}`, { method: 'DELETE' })
     repos.value = repos.value.filter(r => r.id !== id)
@@ -37,6 +46,7 @@ export function useRepository() {
     loading,
     fetchRepos,
     addRepo,
+    updateBranch,
     deleteRepo
   }
 }
