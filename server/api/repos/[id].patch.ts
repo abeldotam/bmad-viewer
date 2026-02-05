@@ -5,13 +5,13 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Repository ID is required' })
 
-  const body = await readBody<{ default_branch?: string }>(event)
+  const body = await readBody<{ default_branch?: string | null }>(event)
 
-  const updates: Record<string, string> = {
+  const updates: Record<string, string | null> = {
     last_synced_at: new Date().toISOString()
   }
-  if (body?.default_branch) {
-    updates.default_branch = body.default_branch
+  if (body && 'default_branch' in body) {
+    updates.default_branch = body.default_branch || null
   }
 
   const supabase = useServerSupabase(event)

@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     id: r.id,
     owner: r.owner,
     name: r.name,
-    defaultBranch: r.default_branch ?? 'main',
+    defaultBranch: r.default_branch ?? null,
     lastSyncedAt: r.last_synced_at,
     createdAt: r.created_at
   }))
