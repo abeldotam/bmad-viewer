@@ -35,6 +35,8 @@ So that **I can manage which BMAD projects I track**.
 - Token validated via Octokit before storage (rejects invalid tokens)
 - Duplicate repo detection (409)
 - RLS: user_id = auth.uid() on repositories table
+- `default_branch` auto-detected from GitHub API at repo creation, displayed as badge on RepoCard
+- PATCH `/api/repos/:id` supports updating `default_branch` and `last_synced_at`
 
 ### File List
 
@@ -45,5 +47,7 @@ So that **I can manage which BMAD projects I track**.
 - `server/api/repos/index.get.ts`
 - `server/api/repos/index.post.ts`
 - `server/api/repos/[id].delete.ts`
+- `server/api/repos/[id].patch.ts`
 - `server/utils/encryption.ts`
 - `server/utils/supabase.ts`
+- `supabase/migrations/002_add_default_branch.sql`

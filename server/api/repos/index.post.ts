@@ -8,10 +8,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'owner and name are required' })
   }
 
+  let defaultBranch = 'main'
   if (body.token) {
     try {
       const octokit = createOctokit(body.token)
-      await octokit.rest.repos.get({ owner: body.owner, repo: body.name })
+      const { data: repoInfo } = await octokit.rest.repos.get({ owner: body.owner, repo: body.name })
+      defaultBranch = repoInfo.default_branch
     } catch {
       throw createError({ statusCode: 400, statusMessage: 'Invalid token or repository not accessible' })
     }
@@ -26,9 +28,10 @@ export default defineEventHandler(async (event) => {
       user_id: user.id,
       owner: body.owner,
       name: body.name,
-      github_token_encrypted: encryptedToken
+      github_token_encrypted: encryptedToken,
+      default_branch: defaultBranch
     })
-    .select('id, owner, name, last_synced_at, created_at')
+    .select('id, owner, name, default_branch, last_synced_at, created_at')
     .single()
 
   if (error) {
@@ -42,6 +45,7 @@ export default defineEventHandler(async (event) => {
     id: data.id,
     owner: data.owner,
     name: data.name,
+    defaultBranch: data.default_branch,
     lastSyncedAt: data.last_synced_at,
     createdAt: data.created_at
   }

@@ -14,20 +14,20 @@ export async function getRepoContents(octokit: Octokit, owner: string, repo: str
   return data
 }
 
-export async function getFileContent(octokit: Octokit, owner: string, repo: string, path: string): Promise<string> {
-  const { data } = await octokit.rest.repos.getContent({ owner, repo, path })
+export async function getFileContent(octokit: Octokit, owner: string, repo: string, path: string, ref?: string): Promise<string> {
+  const { data } = await octokit.rest.repos.getContent({ owner, repo, path, ...(ref && { ref }) })
   if (Array.isArray(data) || data.type !== 'file' || !('content' in data)) {
     throw new Error(`Path ${path} is not a file`)
   }
   return Buffer.from(data.content, 'base64').toString('utf-8')
 }
 
-export async function listBmadFiles(octokit: Octokit, owner: string, repo: string) {
+export async function listBmadFiles(octokit: Octokit, owner: string, repo: string, ref?: string) {
   try {
     const { data } = await octokit.rest.git.getTree({
       owner,
       repo,
-      tree_sha: 'HEAD',
+      tree_sha: ref || 'HEAD',
       recursive: 'true'
     })
 
