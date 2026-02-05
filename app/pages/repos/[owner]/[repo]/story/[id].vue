@@ -11,7 +11,7 @@ const { stories, sprints, loading: repoLoading, fetchFileContent } = useRepoData
 
 const story = ref<Story | null>(null)
 const contentLoading = ref(false)
-const contentError = ref('')
+const contentMissing = ref(false)
 
 const storyPRs = computed(() => {
   if (!story.value) return []
@@ -29,21 +29,20 @@ watch([repoLoading, storyId], async ([isLoading]) => {
   }
 
   story.value = { ...found }
-  contentError.value = ''
+  contentMissing.value = false
 
   if (found.filePath) {
     contentLoading.value = true
     try {
       const content = await fetchFileContent(found.filePath)
       story.value = { ...found, content }
-    } catch (e: unknown) {
-      const msg = e && typeof e === 'object' && 'statusMessage' in e
-        ? String((e as { statusMessage: string }).statusMessage)
-        : String(e)
-      contentError.value = `Failed to load content: ${msg}`
+    } catch {
+      contentMissing.value = true
     } finally {
       contentLoading.value = false
     }
+  } else {
+    contentMissing.value = true
   }
 }, { immediate: true })
 
@@ -81,18 +80,23 @@ useHead({
             class="text-primary text-2xl animate-spin"
           />
         </div>
-        <div
-          v-else-if="contentError"
-          class="rounded-md bg-error/10 text-error px-4 py-3 text-sm"
-        >
-          {{ contentError }}
-          <p class="text-xs text-muted mt-1">
-            filePath: {{ story.filePath }}
-          </p>
-        </div>
+        <UCard v-else-if="contentMissing">
+          <div class="text-center py-6">
+            <UIcon
+              name="i-lucide-file-x"
+              class="text-muted text-3xl mb-3"
+            />
+            <p class="text-muted text-sm">
+              Story file not yet created.
+            </p>
+            <p class="text-xs text-dimmed mt-1">
+              {{ story.filePath }}
+            </p>
+          </div>
+        </UCard>
         <StoryContent
           v-else
-          :content="story.content || 'No content available.'"
+          :content="story.content || ''"
         />
         <CommentForm
           :story-id="story.id"
