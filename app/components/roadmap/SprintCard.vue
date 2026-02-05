@@ -75,15 +75,23 @@ function getPrIcon(state: PullRequestState): string {
       </div>
     </div>
 
-    <UProgress
-      :model-value="progress.percentage"
-      class="mb-3"
-    />
+    <template v-if="progress.total > 0">
+      <UProgress
+        :model-value="progress.percentage"
+        class="mb-3"
+      />
 
-    <div class="flex items-center gap-3 text-xs text-muted">
-      <span>{{ progress.done }}/{{ progress.total }} stories</span>
-      <span v-if="breakdown.in_progress">{{ breakdown.in_progress }} in progress</span>
-      <span v-if="breakdown.blocked">{{ breakdown.blocked }} blocked</span>
-    </div>
+      <div class="flex items-center gap-3 text-xs text-muted">
+        <span>{{ progress.done }}/{{ progress.total }} stories</span>
+        <span v-if="breakdown.in_progress">{{ breakdown.in_progress }} in progress</span>
+        <span v-if="breakdown.blocked">{{ breakdown.blocked }} blocked</span>
+      </div>
+    </template>
+    <p
+      v-else
+      class="text-sm text-muted italic"
+    >
+      No stories in this epic
+    </p>
   </UCard>
 </template>

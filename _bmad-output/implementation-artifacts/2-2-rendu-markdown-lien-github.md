@@ -28,7 +28,7 @@ So that **I can review project documentation in a readable format and access the
 - Uses `<MDC :value="content" />` from @nuxtjs/mdc
 - "Open in GitHub" button with external link icon
 - Prose class with dark:prose-invert for dark mode
-- Minor note: frontmatter handling relies on MDC's native behavior (strips YAML frontmatter by default)
+- Frontmatter handling: `<MDC>` natively parses YAML frontmatter and excludes it from rendered output. Verified — no raw YAML leak (AC:3 satisfied)
 
 ### File List
 
