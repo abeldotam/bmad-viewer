@@ -45,7 +45,8 @@ So that **I can browse documents, roadmap, and stories without waiting for API c
 - `default_branch` nullable (migration 003): NULL = use repo's actual default branch (HEAD)
 - Branch auto-detected from GitHub API at repo creation when token provided
 - Branch editable from dashboard RepoCard (UPopover inline form)
-- Multi-format parser: epic-based + legacy sprint format, with/without frontmatter
+- Multi-format parser: epic-based + legacy sprint format + BMAD development_status format, with/without frontmatter
+- `development_status` format: flat map with `epic-N` and `N-M-slug` keys, parsed into Sprint/Story structure
 - provide/inject for repo-scoped data (useRepoData)
 - Tabs use v-show per ADR-4
 
