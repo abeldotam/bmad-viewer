@@ -88,6 +88,9 @@ export function provideRepoData(repoId: Ref<string | null>) {
         stories: s.stories,
         filePath: ''
       }))
+
+      // Update last synced timestamp (fire-and-forget)
+      api(`/api/repos/${repoId.value}`, { method: 'PATCH' }).catch(() => {})
     } catch (e) {
       if (isStatusCode(e, 403)) {
         tokenError.value = true

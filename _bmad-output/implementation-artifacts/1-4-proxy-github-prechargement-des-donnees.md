@@ -40,12 +40,14 @@ So that **I can browse documents, roadmap, and stories without waiting for API c
 - GitHub auth error detection (401/403) via `isGitHubAuthError()` helper
 - Auth errors propagated through all 3 API routes → client shows warning banner with dashboard link
 - `tokenError` and `syncing` refs in useRepoData (separate from `loading`)
+- `last_synced_at` updated via PATCH `/api/repos/:id` after successful loadAll (fire-and-forget)
 - Multi-format parser: epic-based + legacy sprint format, with/without frontmatter
 - provide/inject for repo-scoped data (useRepoData)
 - Tabs use v-show per ADR-4
 
 ### File List
 
+- `server/api/repos/[id].patch.ts`
 - `server/api/github/tree.get.ts`
 - `server/api/github/contents.get.ts`
 - `server/api/github/pulls.get.ts`
