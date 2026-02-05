@@ -31,6 +31,9 @@ interface RawSprintStatus {
   // Legacy sprint-based format
   current_sprint?: number
   sprints?: { number: number, goal: string, status: string, stories: { id: string, status: string }[] }[]
+  // BMAD development_status format (flat map)
+  development_status?: Record<string, string>
+  story_location?: string
 }
 
 function mapStoryStatus(status: string): StoryStatus {
@@ -53,11 +56,13 @@ function mapStoryStatus(status: string): StoryStatus {
 function mapEpicStatus(status: string): SprintStatus {
   const mapping: Record<string, SprintStatus> = {
     'completed': 'completed',
+    'done': 'completed',
     'in-progress': 'active',
     'in_progress': 'active',
     'active': 'active',
     'pending': 'planned',
-    'planned': 'planned'
+    'planned': 'planned',
+    'backlog': 'planned'
   }
   return mapping[status] || 'planned'
 }
@@ -101,6 +106,54 @@ export function useBmadParser() {
           branch: epic.branch
         }
       })
+
+      const active = sprints.findIndex(s => s.status === 'active')
+      return { currentSprint: active >= 0 ? sprints[active]!.number : 0, sprints }
+    }
+
+    // BMAD development_status format (flat map: epic-N, N-M-slug keys)
+    if (raw.development_status && typeof raw.development_status === 'object') {
+      const devStatus = raw.development_status
+      const storyLocation = raw.story_location || '_bmad-output/implementation-artifacts'
+      const epicMap = new Map<number, { status: string, stories: Story[] }>()
+
+      for (const [key, status] of Object.entries(devStatus)) {
+        if (key.endsWith('-retrospective')) continue
+
+        const epicMatch = key.match(/^epic-(\d+)$/)
+        if (epicMatch) {
+          const num = parseInt(epicMatch[1]!)
+          if (!epicMap.has(num)) epicMap.set(num, { status, stories: [] })
+          else epicMap.get(num)!.status = status
+          continue
+        }
+
+        const storyMatch = key.match(/^(\d+)-(\d+)-(.+)$/)
+        if (storyMatch) {
+          const epicNum = parseInt(storyMatch[1]!)
+          const storyNum = parseInt(storyMatch[2]!)
+          const slug = storyMatch[3]!
+          if (!epicMap.has(epicNum)) epicMap.set(epicNum, { status: 'in-progress', stories: [] })
+          epicMap.get(epicNum)!.stories.push({
+            id: `${epicNum}.${storyNum}`,
+            title: slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+            epic: `Epic ${epicNum}`,
+            status: mapStoryStatus(status),
+            priority: 'medium',
+            estimate: 0,
+            filePath: `${storyLocation}/${key}.md`
+          })
+        }
+      }
+
+      const sprints: Sprint[] = Array.from(epicMap.entries())
+        .sort(([a], [b]) => a - b)
+        .map(([num, data]) => ({
+          number: num,
+          goal: `Epic ${num}`,
+          status: mapEpicStatus(data.status),
+          stories: data.stories.sort((a, b) => a.id.localeCompare(b.id))
+        }))
 
       const active = sprints.findIndex(s => s.status === 'active')
       return { currentSprint: active >= 0 ? sprints[active]!.number : 0, sprints }
