@@ -85,7 +85,7 @@ async function handleSubmit() {
           </UFormField>
 
           <UFormField label="Description">
-            <UTextarea
+            <MarkdownEditor
               v-model="description"
               placeholder="Describe the feature, bug, or improvement..."
               :rows="4"

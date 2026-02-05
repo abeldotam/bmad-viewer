@@ -3,7 +3,7 @@ const route = useRoute()
 const router = useRouter()
 const owner = computed(() => route.params.owner as string)
 const repo = computed(() => route.params.repo as string)
-const { documents, sprints, stories, epics, loading, fetchFileContent } = useRepoData()
+const { documents, sprints, stories, epics, loading, syncing, tokenError, fetchFileContent, refresh } = useRepoData()
 const { handleError } = useErrorHandler()
 
 // --- Tab state ---
@@ -77,8 +77,26 @@ const viewTabs = [
     </div>
 
     <template v-else>
+      <!-- Token error banner -->
+      <div
+        v-if="tokenError"
+        class="flex items-center gap-2 rounded-md bg-warning/10 text-warning px-4 py-3 text-sm mb-4"
+      >
+        <UIcon
+          name="i-lucide-triangle-alert"
+          class="size-5 shrink-0"
+        />
+        <span>GitHub token is invalid or expired. Data may be stale.</span>
+        <NuxtLink
+          to="/dashboard"
+          class="ml-auto underline font-medium whitespace-nowrap"
+        >
+          Go to dashboard
+        </NuxtLink>
+      </div>
+
       <!-- Tab bar -->
-      <div class="flex gap-1 border-b border-default mb-6">
+      <div class="flex items-center gap-1 border-b border-default mb-6">
         <button
           v-for="tab in tabs"
           :key="tab.value"
@@ -92,6 +110,15 @@ const viewTabs = [
           />
           {{ tab.label }}
         </button>
+
+        <UButton
+          icon="i-lucide-refresh-cw"
+          variant="ghost"
+          size="sm"
+          :loading="syncing"
+          class="ml-auto"
+          @click="refresh"
+        />
       </div>
 
       <!-- Roadmap tab -->

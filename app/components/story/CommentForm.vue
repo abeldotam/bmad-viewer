@@ -47,7 +47,7 @@ async function handleSubmit() {
       class="space-y-3"
       @submit.prevent="handleSubmit"
     >
-      <UTextarea
+      <MarkdownEditor
         v-model="comment"
         placeholder="Write your comment..."
         :rows="3"

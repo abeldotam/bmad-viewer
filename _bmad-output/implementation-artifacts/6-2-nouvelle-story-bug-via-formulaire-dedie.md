@@ -26,7 +26,8 @@ So that **I can propose changes following the BMAD methodology without modifying
 
 ### Implementation: COMPLETE
 
-- Modal form with all required fields, submit button disabled during loading and when required fields are empty
+- Modal form with all required fields, description uses MarkdownEditor (write/preview toggle), submit button disabled during loading and when required fields are empty
+- Markdown preview via MDC component with prose styling
 - Type prefix: feature=[NEW STORY], bug=[BMAD Bug], improvement=[BMAD Improvement]
 - Labels: bmad-new-story/bmad-bug/bmad-improvement + bmad-pending + priority:{p}
 - Floating button fixed bottom-right, only visible when route starts with /repos/
@@ -34,6 +35,7 @@ So that **I can propose changes following the BMAD methodology without modifying
 ### File List
 
 - `app/components/NewStoryModal.vue`
+- `app/components/MarkdownEditor.vue`
 - `app/composables/useGitHubIssues.ts` (createNewStory)
 - `app/utils/issueTemplates.ts` (buildNewStoryIssueBody, getNewStoryLabels)
 - `app/app.vue` (floating button)

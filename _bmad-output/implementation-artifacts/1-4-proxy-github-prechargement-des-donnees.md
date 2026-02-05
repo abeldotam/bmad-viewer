@@ -34,7 +34,12 @@ So that **I can browse documents, roadmap, and stories without waiting for API c
 
 - Parallel fetch: tree + sprint-status + PRs via Promise.allSettled
 - PRs matched to sprints/epics by branch name
-- File content cached in `cached_files` table (SHA-based, no TTL)
+- File content cached in `cached_files` table with 5-minute TTL (CACHE_TTL_MS)
+- Cache bypass via `noCache` query parameter for manual sync
+- "Sync now" button (refresh-cw icon) in tab bar with loading spinner
+- GitHub auth error detection (401/403) via `isGitHubAuthError()` helper
+- Auth errors propagated through all 3 API routes → client shows warning banner with dashboard link
+- `tokenError` and `syncing` refs in useRepoData (separate from `loading`)
 - Multi-format parser: epic-based + legacy sprint format, with/without frontmatter
 - provide/inject for repo-scoped data (useRepoData)
 - Tabs use v-show per ADR-4

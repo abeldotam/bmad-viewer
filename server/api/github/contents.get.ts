@@ -1,3 +1,5 @@
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
 export default defineEventHandler(async (event) => {
   const user = await getAuthUser(event)
   if (!user?.id) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
@@ -5,6 +7,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const repoId = query.repoId as string
   const path = query.path as string
+  const noCache = query.noCache === 'true'
 
   if (!repoId || !path) {
     throw createError({ statusCode: 400, statusMessage: 'repoId and path are required' })
@@ -14,10 +17,18 @@ export default defineEventHandler(async (event) => {
 
   const { data: cached } = await supabase
     .from('cached_files')
-    .select('content, sha')
+    .select('content, sha, cached_at')
     .eq('repository_id', repoId)
     .eq('path', path)
     .single()
+
+  // Return fresh cache if TTL not expired and not forced refresh
+  if (!noCache && cached?.content && cached.cached_at) {
+    const age = Date.now() - new Date(cached.cached_at).getTime()
+    if (age < CACHE_TTL_MS) {
+      return { content: cached.content, fromCache: true }
+    }
+  }
 
   const { data: repo, error: repoError } = await supabase
     .from('repositories')
@@ -44,7 +55,10 @@ export default defineEventHandler(async (event) => {
       }, { onConflict: 'repository_id,path' })
 
     return { content, fromCache: false }
-  } catch {
+  } catch (e) {
+    if (isGitHubAuthError(e)) {
+      throw createError({ statusCode: 403, statusMessage: 'GitHub token invalid or expired' })
+    }
     if (cached?.content) {
       return { content: cached.content, fromCache: true }
     }

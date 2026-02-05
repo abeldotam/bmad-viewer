@@ -6,13 +6,20 @@ interface RepoData {
   stories: Ref<Story[]>
   epics: Ref<Epic[]>
   loading: Ref<boolean>
+  syncing: Ref<boolean>
+  tokenError: Ref<boolean>
   fetchFileContent: (path: string) => Promise<string>
+  refresh: () => Promise<void>
 }
 
 const REPO_DATA_KEY = 'repoData' as const
 
 export function useRepoData(): RepoData {
   return inject<RepoData>(REPO_DATA_KEY)!
+}
+
+function isStatusCode(e: unknown, code: number): boolean {
+  return !!e && typeof e === 'object' && 'statusCode' in e && (e as { statusCode: number }).statusCode === code
 }
 
 export function provideRepoData(repoId: Ref<string | null>) {
@@ -25,6 +32,8 @@ export function provideRepoData(repoId: Ref<string | null>) {
   const stories = ref<Story[]>([])
   const epics = ref<Epic[]>([])
   const loading = ref(true)
+  const syncing = ref(false)
+  const tokenError = ref(false)
 
   async function fetchFileContent(path: string): Promise<string> {
     return rawFetchFileContent(repoId.value!, path)
@@ -33,18 +42,20 @@ export function provideRepoData(repoId: Ref<string | null>) {
   async function fetchPulls(id: string): Promise<PullRequest[]> {
     try {
       return await api<PullRequest[]>('/api/github/pulls', { params: { repoId: id } })
-    } catch {
+    } catch (e) {
+      if (isStatusCode(e, 403)) throw e
       return []
     }
   }
 
-  async function loadAll() {
+  async function loadAll(noCache = false) {
     if (!repoId.value) return
     loading.value = true
+    tokenError.value = false
     try {
       const [tree, sprintData, pulls] = await Promise.all([
         fetchDocumentTree(repoId.value!),
-        fetchSprintStatus(repoId.value!),
+        fetchSprintStatus(repoId.value!, noCache),
         fetchPulls(repoId.value!)
       ])
 
@@ -78,9 +89,21 @@ export function provideRepoData(repoId: Ref<string | null>) {
         filePath: ''
       }))
     } catch (e) {
+      if (isStatusCode(e, 403)) {
+        tokenError.value = true
+      }
       handleError(e, 'Failed to load repository data')
     } finally {
       loading.value = false
+    }
+  }
+
+  async function refresh() {
+    syncing.value = true
+    try {
+      await loadAll(true)
+    } finally {
+      syncing.value = false
     }
   }
 
@@ -94,7 +117,10 @@ export function provideRepoData(repoId: Ref<string | null>) {
     stories,
     epics,
     loading,
-    fetchFileContent
+    syncing,
+    tokenError,
+    fetchFileContent,
+    refresh
   }
 
   provide(REPO_DATA_KEY, data)
