@@ -7,10 +7,16 @@ const repo = computed(() => route.params.repo as string)
 const storyId = computed(() => route.params.id as string)
 const repoId = inject<Ref<string | null>>('repoId')!
 
-const { stories, loading: repoLoading, fetchFileContent } = useRepoData()
+const { stories, sprints, loading: repoLoading, fetchFileContent } = useRepoData()
 
 const story = ref<Story | null>(null)
 const contentLoading = ref(false)
+
+const storyPRs = computed(() => {
+  if (!story.value) return []
+  const sprint = sprints.value.find(s => s.stories.some(st => st.id === story.value?.id))
+  return sprint?.pr ? [sprint.pr] : []
+})
 
 watch([repoLoading, storyId], async ([isLoading]) => {
   if (isLoading) return
@@ -83,7 +89,7 @@ useHead({
 
       <div class="space-y-4">
         <StoryMetadata :story="story" />
-        <RelatedPRs />
+        <RelatedPRs :pull-requests="storyPRs" />
         <LinkedIssues
           :repo-id="repoId!"
           :story-id="story.id"
