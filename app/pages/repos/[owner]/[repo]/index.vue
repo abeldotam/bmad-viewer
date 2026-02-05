@@ -18,6 +18,7 @@ const tabs = [
 const selectedPath = computed(() => (route.query.path as string) || '')
 const docContent = ref('')
 const docContentLoading = ref(false)
+const docTreeOpen = ref(false)
 
 watch(selectedPath, async (path) => {
   if (!path) {
@@ -37,6 +38,7 @@ watch(selectedPath, async (path) => {
 
 function selectDocument(path: string) {
   activeTab.value = 'documents'
+  docTreeOpen.value = false
   router.push({ query: { path } })
 }
 
@@ -190,7 +192,8 @@ const viewTabs = [
           v-else
           class="grid grid-cols-1 md:grid-cols-4 gap-6"
         >
-          <div class="md:col-span-1">
+          <!-- Sidebar: visible on desktop, hidden on mobile -->
+          <div class="hidden md:block md:col-span-1">
             <UCard>
               <DocumentTree
                 :items="documents"
@@ -200,7 +203,33 @@ const viewTabs = [
             </UCard>
           </div>
 
+          <!-- Mobile: slideover for document tree -->
+          <USlideover
+            v-model:open="docTreeOpen"
+            title="Documents"
+            side="left"
+            class="md:hidden"
+          >
+            <template #body>
+              <DocumentTree
+                :items="documents"
+                :selected-path="selectedPath"
+                @select="selectDocument"
+              />
+            </template>
+          </USlideover>
+
           <div class="md:col-span-3">
+            <!-- Mobile: button to open tree -->
+            <UButton
+              label="Browse documents"
+              icon="i-lucide-panel-left"
+              variant="outline"
+              size="sm"
+              class="mb-4 md:hidden"
+              @click="docTreeOpen = true"
+            />
+
             <div
               v-if="docContentLoading"
               class="text-center py-20"

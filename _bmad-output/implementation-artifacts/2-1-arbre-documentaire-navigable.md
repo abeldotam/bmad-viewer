@@ -28,6 +28,7 @@ So that **I can find and select any project document quickly**.
 - Icons: folder, yaml, markdown, generic (via getIcon())
 - Selected item highlighted with primary/10 background
 - Empty state handled at page level (index.vue) with explicit message
+- Mobile: USlideover drawer for document tree, triggered by "Browse documents" button (hidden on desktop)
 
 ### File List
 

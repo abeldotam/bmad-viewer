@@ -66,7 +66,7 @@ async function handleSubmit() {
         icon="i-lucide-send"
         size="sm"
         :loading="loading"
-        :disabled="!comment.trim()"
+        :disabled="loading || !comment.trim()"
       />
     </form>
   </UCard>

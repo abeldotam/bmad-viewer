@@ -30,6 +30,7 @@ So that **I can understand the complete scope and context of a work item**.
 - Content lazy-loaded on page visit via fetchFileContent
 - Two-column layout: content (left) + metadata sidebar (right)
 - "Story not found" message for invalid IDs
+- "Copy link" button in StoryHeader copies story URL to clipboard with visual feedback
 
 ### File List
 

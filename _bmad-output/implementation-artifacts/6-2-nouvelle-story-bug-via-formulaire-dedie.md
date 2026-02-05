@@ -26,7 +26,7 @@ So that **I can propose changes following the BMAD methodology without modifying
 
 ### Implementation: COMPLETE
 
-- Modal form with all required fields
+- Modal form with all required fields, submit button disabled during loading and when required fields are empty
 - Type prefix: feature=[NEW STORY], bug=[BMAD Bug], improvement=[BMAD Improvement]
 - Labels: bmad-new-story/bmad-bug/bmad-improvement + bmad-pending + priority:{p}
 - Floating button fixed bottom-right, only visible when route starts with /repos/

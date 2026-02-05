@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-col min-w-[280px] w-full">
+  <div class="flex flex-col min-w-[280px] w-full md:w-auto md:flex-1 shrink-0 md:shrink">
     <div class="flex items-center justify-between mb-3 px-1">
       <div class="flex items-center gap-2">
         <StatusBadge :status="status" />
