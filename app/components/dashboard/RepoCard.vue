@@ -20,18 +20,27 @@ defineEmits<{
         >
           {{ repo.owner }}/{{ repo.name }}
         </NuxtLink>
-        <p
-          v-if="repo.lastSyncedAt"
-          class="text-xs text-muted mt-1"
-        >
-          Last synced: {{ new Date(repo.lastSyncedAt).toLocaleDateString() }}
-        </p>
-        <p
-          v-else
-          class="text-xs text-muted mt-1"
-        >
-          Never synced
-        </p>
+        <div class="flex items-center gap-2 mt-1">
+          <UBadge
+            :label="repo.defaultBranch"
+            icon="i-lucide-git-branch"
+            variant="subtle"
+            color="neutral"
+            size="sm"
+          />
+          <span
+            v-if="repo.lastSyncedAt"
+            class="text-xs text-muted"
+          >
+            Last synced: {{ new Date(repo.lastSyncedAt).toLocaleDateString() }}
+          </span>
+          <span
+            v-else
+            class="text-xs text-muted"
+          >
+            Never synced
+          </span>
+        </div>
       </div>
       <UButton
         icon="i-lucide-trash-2"

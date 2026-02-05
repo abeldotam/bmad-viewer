@@ -58,6 +58,7 @@ export interface Repository {
   id: string
   owner: string
   name: string
+  defaultBranch: string
   lastSyncedAt: string | null
   createdAt: string
 }

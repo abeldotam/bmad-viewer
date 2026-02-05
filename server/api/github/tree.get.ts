@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const supabase = useServerSupabase(event)
   const { data: repo, error } = await supabase
     .from('repositories')
-    .select('owner, name, github_token_encrypted')
+    .select('owner, name, github_token_encrypted, default_branch')
     .eq('id', repoId)
     .eq('user_id', user.id)
     .single()
@@ -19,9 +19,10 @@ export default defineEventHandler(async (event) => {
 
   const token = repo.github_token_encrypted ? decrypt(repo.github_token_encrypted as string) : ''
   const octokit = createOctokit(token)
+  const branch = (repo.default_branch as string) || 'main'
 
   try {
-    const files = await listBmadFiles(octokit, repo.owner as string, repo.name as string)
+    const files = await listBmadFiles(octokit, repo.owner as string, repo.name as string, branch)
     return files
   } catch (e) {
     if (isGitHubAuthError(e)) {
