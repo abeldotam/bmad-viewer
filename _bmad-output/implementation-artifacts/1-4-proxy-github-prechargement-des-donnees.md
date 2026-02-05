@@ -41,12 +41,20 @@ So that **I can browse documents, roadmap, and stories without waiting for API c
 - Auth errors propagated through all 3 API routes → client shows warning banner with dashboard link
 - `tokenError` and `syncing` refs in useRepoData (separate from `loading`)
 - `last_synced_at` updated via PATCH `/api/repos/:id` after successful loadAll (fire-and-forget)
+- Configurable `default_branch` per repository (column added in migration 002)
+- `default_branch` nullable (migration 003): NULL = use repo's actual default branch (HEAD)
+- Branch auto-detected from GitHub API at repo creation when token provided
+- Branch editable from dashboard RepoCard (UPopover inline form)
 - Multi-format parser: epic-based + legacy sprint format, with/without frontmatter
 - provide/inject for repo-scoped data (useRepoData)
 - Tabs use v-show per ADR-4
 
 ### File List
 
+- `supabase/migrations/002_add_default_branch.sql`
+- `supabase/migrations/003_nullable_default_branch.sql`
+- `server/api/repos/index.post.ts`
+- `server/api/repos/index.get.ts`
 - `server/api/repos/[id].patch.ts`
 - `server/api/github/tree.get.ts`
 - `server/api/github/contents.get.ts`
@@ -58,3 +66,7 @@ So that **I can browse documents, roadmap, and stories without waiting for API c
 - `app/composables/useStoryStatus.ts`
 - `app/pages/repos/[owner]/[repo]/index.vue`
 - `app/components/RepoNavigation.vue`
+- `app/components/dashboard/RepoCard.vue`
+- `app/composables/useRepository.ts`
+- `app/types/database.types.ts`
+- `shared/types/bmad.ts`
