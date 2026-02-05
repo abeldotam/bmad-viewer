@@ -10,6 +10,16 @@ defineProps<{
 const breadcrumbItems = computed(() => [
   { label: 'Epics & Stories', icon: 'i-lucide-kanban', to: `../../epics` }
 ])
+
+const copied = ref(false)
+
+async function copyLink() {
+  await navigator.clipboard.writeText(window.location.href)
+  copied.value = true
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
+}
 </script>
 
 <template>
@@ -28,14 +38,23 @@ const breadcrumbItems = computed(() => [
           {{ story.title }}
         </h1>
       </div>
-      <UButton
-        label="Open in GitHub"
-        icon="i-simple-icons-github"
-        variant="subtle"
-        size="sm"
-        :to="`https://github.com/${repoOwner}/${repoName}/blob/main/_bmad-output/${story.filePath}`"
-        target="_blank"
-      />
+      <div class="flex items-center gap-2">
+        <UButton
+          :label="copied ? 'Copied!' : 'Copy link'"
+          :icon="copied ? 'i-lucide-check' : 'i-lucide-link'"
+          variant="subtle"
+          size="sm"
+          @click="copyLink"
+        />
+        <UButton
+          label="Open in GitHub"
+          icon="i-simple-icons-github"
+          variant="subtle"
+          size="sm"
+          :to="`https://github.com/${repoOwner}/${repoName}/blob/main/_bmad-output/${story.filePath}`"
+          target="_blank"
+        />
+      </div>
     </div>
 
     <StatusBadge :status="story.status" />

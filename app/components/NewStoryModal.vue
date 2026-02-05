@@ -119,6 +119,7 @@ async function handleSubmit() {
               type="submit"
               label="Submit"
               :loading="loading"
+              :disabled="loading || !title || !description"
             />
           </div>
         </form>

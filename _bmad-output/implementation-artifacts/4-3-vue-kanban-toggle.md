@@ -30,6 +30,7 @@ So that **I can visualize story progress in a spatial layout**.
 - Columns group stories by status
 - Cards navigate to /story/[id] on click
 - v-show tabs preserve state per ADR-4
+- Kanban columns scroll horizontally on mobile (shrink-0 + min-w-[280px]), fill evenly on desktop
 
 ### File List
 
