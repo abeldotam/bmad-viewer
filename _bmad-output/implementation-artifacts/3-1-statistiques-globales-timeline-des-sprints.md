@@ -12,7 +12,7 @@ So that **I know at a glance where my project stands**.
 
 1. Given I am on the Roadmap tab, When displayed, Then I see global stats: total stories, completed, % progress, current sprint (AC:1)
 2. Given roadmap data is loaded, When I scroll, Then each sprint/epic shows as a card with number, goal, status badge, progress bar, story breakdown (AC:2)
-3. Given an epic has no stories, When displayed, Then progress bar shows 0% (AC:3)
+3. Given an epic has no stories, When displayed, Then card clearly indicates no stories (AC:3)
 
 ## Tasks / Subtasks
 
@@ -27,7 +27,7 @@ So that **I know at a glance where my project stands**.
 - GlobalStats: responsive grid (2 cols mobile, 4 cols desktop)
 - Timeline: CSS border-left + positioned dots (green/blue/gray by status)
 - useStoryStatus composable centralizes progress calculations
-- Minor note: empty epics show 0% bar but no explicit "no stories" text message
+- Empty epics now show "No stories in this epic" instead of a misleading 0% bar (AC:3 fixed)
 
 ### File List
 
