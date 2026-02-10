@@ -38,6 +38,12 @@ So that **I can manage which BMAD projects I track**.
 - `default_branch` auto-detected from GitHub API at repo creation, displayed as badge on RepoCard
 - PATCH `/api/repos/:id` supports updating `default_branch` and `last_synced_at`
 
+### Nuxt UI Best Practices (PR #12)
+
+- `AddRepoModal.vue` now uses `<UForm :state>` instead of native `<form>` for proper integration with `<UFormField>`
+- Form state consolidated into a single `reactive()` object instead of individual `ref()` per field
+- `<UFormField>` components now include `name` and `required` props for proper form context
+
 ### File List
 
 - `app/pages/dashboard.vue`

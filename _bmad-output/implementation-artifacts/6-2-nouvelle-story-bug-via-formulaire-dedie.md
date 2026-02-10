@@ -32,6 +32,12 @@ So that **I can propose changes following the BMAD methodology without modifying
 - Labels: bmad-new-story/bmad-bug/bmad-improvement + bmad-pending + priority:{p}
 - Floating button fixed bottom-right, only visible when route starts with /repos/
 
+### Nuxt UI Best Practices (PR #12)
+
+- `NewStoryModal.vue` now uses `<UForm :state>` instead of native `<form>` for proper integration with `<UFormField>`
+- Form state consolidated into a single `reactive()` object instead of individual `ref()` per field
+- `MarkdownEditor.vue` Write/Preview toggle buttons replaced with `<UButton>` components (was raw `<button>` with manual styling)
+
 ### File List
 
 - `app/components/NewStoryModal.vue`

@@ -13,22 +13,20 @@ const mode = ref<'write' | 'preview'>('write')
 <template>
   <div>
     <div class="flex gap-1 mb-2">
-      <button
-        type="button"
-        class="px-2.5 py-1 text-xs font-medium rounded transition-colors"
-        :class="mode === 'write' ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground'"
+      <UButton
+        label="Write"
+        size="xs"
+        :variant="mode === 'write' ? 'subtle' : 'ghost'"
+        :color="mode === 'write' ? 'primary' : 'neutral'"
         @click="mode = 'write'"
-      >
-        Write
-      </button>
-      <button
-        type="button"
-        class="px-2.5 py-1 text-xs font-medium rounded transition-colors"
-        :class="mode === 'preview' ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground'"
+      />
+      <UButton
+        label="Preview"
+        size="xs"
+        :variant="mode === 'preview' ? 'subtle' : 'ghost'"
+        :color="mode === 'preview' ? 'primary' : 'neutral'"
         @click="mode = 'preview'"
-      >
-        Preview
-      </button>
+      />
     </div>
 
     <UTextarea

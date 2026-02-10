@@ -7,11 +7,13 @@ const { createNewStory } = useGitHubIssues()
 const { handleError, handleSuccess } = useErrorHandler()
 
 const open = ref(false)
-const type = ref<IssueType>('feature')
-const title = ref('')
-const description = ref('')
-const epic = ref('')
-const priority = ref<Priority>('medium')
+const state = reactive({
+  type: 'feature' as IssueType,
+  title: '',
+  description: '',
+  epic: '',
+  priority: 'medium' as Priority
+})
 const loading = ref(false)
 
 const typeOptions = [
@@ -27,20 +29,20 @@ const priorityOptions = [
 ]
 
 async function handleSubmit() {
-  if (!title.value || !description.value || !repoId?.value) return
+  if (!state.title || !state.description || !repoId?.value) return
   loading.value = true
 
   try {
     await createNewStory(repoId.value, {
-      type: type.value,
-      title: title.value,
-      description: description.value,
-      epic: epic.value,
-      priority: priority.value
+      type: state.type,
+      title: state.title,
+      description: state.description,
+      epic: state.epic,
+      priority: state.priority
     })
     handleSuccess('Story proposal submitted as GitHub issue!')
-    title.value = ''
-    description.value = ''
+    state.title = ''
+    state.description = ''
     open.value = false
   } catch (e) {
     handleError(e, 'Failed to create story')
@@ -64,45 +66,61 @@ async function handleSubmit() {
       title="New Story / Report Bug"
     >
       <template #body>
-        <form
+        <UForm
+          :state="state"
           class="space-y-4"
-          @submit.prevent="handleSubmit"
+          @submit="handleSubmit"
         >
-          <UFormField label="Type">
+          <UFormField
+            label="Type"
+            name="type"
+          >
             <USelectMenu
-              v-model="type"
+              v-model="state.type"
               :items="typeOptions"
               value-key="value"
             />
           </UFormField>
 
-          <UFormField label="Title">
+          <UFormField
+            label="Title"
+            name="title"
+            required
+          >
             <UInput
-              v-model="title"
+              v-model="state.title"
               placeholder="Brief summary"
-              required
             />
           </UFormField>
 
-          <UFormField label="Description">
+          <UFormField
+            label="Description"
+            name="description"
+            required
+          >
             <MarkdownEditor
-              v-model="description"
+              v-model="state.description"
               placeholder="Describe the feature, bug, or improvement..."
               :rows="4"
-              required
             />
           </UFormField>
 
-          <UFormField label="Epic">
+          <UFormField
+            label="Epic"
+            name="epic"
+          >
             <UInput
-              v-model="epic"
+              v-model="state.epic"
               placeholder="Epic ID (e.g. E-001)"
             />
           </UFormField>
 
-          <UFormField label="Priority">
+          <UFormField
+            label="Priority"
+            name="priority"
+          >
             <USelectMenu
-              v-model="priority"
+              v-model="state.priority"
               :items="priorityOptions"
               value-key="value"
             />
@@ -119,10 +137,10 @@ async function handleSubmit() {
               type="submit"
               label="Submit"
               :loading="loading"
-              :disabled="loading || !title || !description"
+              :disabled="loading || !state.title || !state.description"
             />
           </div>
-        </form>
+        </UForm>
       </template>
     </UModal>
   </div>

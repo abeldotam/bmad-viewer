@@ -5,8 +5,10 @@ definePageMeta({
 
 const { login, loginWithGithub } = useAuth()
 
-const email = ref('')
-const password = ref('')
+const state = reactive({
+  email: '',
+  password: ''
+})
 const error = ref('')
 const loading = ref(false)
 
@@ -14,7 +16,7 @@ async function handleLogin() {
   loading.value = true
   error.value = ''
   try {
-    await login(email.value, password.value)
+    await login(state.email, state.password)
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Login failed'
   } finally {
@@ -42,25 +44,32 @@ async function handleGithubLogin() {
         </p>
       </div>
 
-      <form
+      <UForm
+        :state="state"
         class="space-y-4"
-        @submit.prevent="handleLogin"
+        @submit="handleLogin"
       >
-        <UFormField label="Email">
+        <UFormField
+          label="Email"
+          name="email"
+          required
+        >
           <UInput
-            v-model="email"
+            v-model="state.email"
             type="email"
             placeholder="you@example.com"
-            required
           />
         </UFormField>
 
-        <UFormField label="Password">
+        <UFormField
+          label="Password"
+          name="password"
+          required
+        >
           <UInput
-            v-model="password"
+            v-model="state.password"
             type="password"
             placeholder="Your password"
-            required
           />
         </UFormField>
 
@@ -77,7 +86,7 @@ async function handleGithubLogin() {
           block
           :loading="loading"
         />
-      </form>
+      </UForm>
 
       <USeparator
         label="or"

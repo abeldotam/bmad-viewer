@@ -5,21 +5,23 @@ definePageMeta({
 
 const { register, loginWithGithub } = useAuth()
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
+const state = reactive({
+  email: '',
+  password: '',
+  confirmPassword: ''
+})
 const error = ref('')
 const loading = ref(false)
 
 async function handleRegister() {
-  if (password.value !== confirmPassword.value) {
+  if (state.password !== state.confirmPassword) {
     error.value = 'Passwords do not match'
     return
   }
   loading.value = true
   error.value = ''
   try {
-    await register(email.value, password.value)
+    await register(state.email, state.password)
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Registration failed'
   } finally {
@@ -47,34 +49,44 @@ async function handleGithubLogin() {
         </p>
       </div>
 
-      <form
+      <UForm
+        :state="state"
         class="space-y-4"
-        @submit.prevent="handleRegister"
+        @submit="handleRegister"
       >
-        <UFormField label="Email">
+        <UFormField
+          label="Email"
+          name="email"
+          required
+        >
           <UInput
-            v-model="email"
+            v-model="state.email"
             type="email"
             placeholder="you@example.com"
-            required
           />
         </UFormField>
 
-        <UFormField label="Password">
+        <UFormField
+          label="Password"
+          name="password"
+          required
+        >
           <UInput
-            v-model="password"
+            v-model="state.password"
             type="password"
             placeholder="Choose a password"
-            required
           />
         </UFormField>
 
-        <UFormField label="Confirm Password">
+        <UFormField
+          label="Confirm Password"
+          name="confirmPassword"
+          required
+        >
           <UInput
-            v-model="confirmPassword"
+            v-model="state.confirmPassword"
             type="password"
             placeholder="Confirm your password"
-            required
           />
         </UFormField>
 
@@ -91,7 +103,7 @@ async function handleGithubLogin() {
           block
           :loading="loading"
         />
-      </form>
+      </UForm>
 
       <USeparator
         label="or"
