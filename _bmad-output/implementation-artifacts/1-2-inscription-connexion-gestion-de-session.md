@@ -35,6 +35,12 @@ So that **I can securely access the application without re-authenticating**.
 - Public routes: `/`, `/login`, `/register`, `/auth/callback`
 - Session restoration forced in SPA mode via middleware
 
+### Nuxt UI Best Practices (PR #12)
+
+- `login.vue` and `register.vue` now use `<UForm :state>` instead of native `<form>` for proper integration with `<UFormField>`
+- Form state consolidated into a single `reactive()` object instead of individual `ref()` per field
+- `<UFormField>` components now include `name` and `required` props for proper form context
+
 ### File List
 
 - `app/pages/login.vue`

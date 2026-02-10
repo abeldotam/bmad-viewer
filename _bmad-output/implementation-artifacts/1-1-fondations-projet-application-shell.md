@@ -73,6 +73,11 @@ This story's implementation already exists in the codebase. All files listed bel
 - PullRequestState: 'open' | 'merged' | 'closed' | 'draft'
 - Interfaces: Story, Epic, PullRequest, Sprint, BmadDocument, Repository, CommentPayload, NewStoryPayload, GitHubIssue
 
+### Nuxt UI Best Practices (PR #12)
+
+- `app.vue` now wrapped in `<UApp>` — required for Toast, Tooltip, and overlay components to function correctly
+- Token error banner in `repos/[owner]/[repo]/index.vue` replaced with `<UAlert>` component (was a custom styled `<div>`)
+
 ### Architecture Compliance
 
 - SSR disabled (`ssr: false`) ✅ [Source: architecture.md#Technical Constraints]
