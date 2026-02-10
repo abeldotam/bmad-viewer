@@ -4,25 +4,27 @@ const { handleSuccess } = useErrorHandler()
 
 const open = ref(false)
 
-const owner = ref('')
-const name = ref('')
-const token = ref('')
+const state = reactive({
+  owner: '',
+  name: '',
+  token: ''
+})
 const loading = ref(false)
 const error = ref('')
 
 async function handleSubmit() {
-  if (!owner.value || !name.value) {
+  if (!state.owner || !state.name) {
     error.value = 'Owner and name are required'
     return
   }
   loading.value = true
   error.value = ''
   try {
-    await addRepo(owner.value, name.value, token.value || undefined)
-    handleSuccess(`Repository ${owner.value}/${name.value} added successfully`)
-    owner.value = ''
-    name.value = ''
-    token.value = ''
+    await addRepo(state.owner, state.name, state.token || undefined)
+    handleSuccess(`Repository ${state.owner}/${state.name} added successfully`)
+    state.owner = ''
+    state.name = ''
+    state.token = ''
     open.value = false
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to add repository'
@@ -45,32 +47,40 @@ async function handleSubmit() {
       title="Add Repository"
     >
       <template #body>
-        <form
+        <UForm
+          :state="state"
           class="space-y-4"
-          @submit.prevent="handleSubmit"
+          @submit="handleSubmit"
         >
-          <UFormField label="Repository Owner">
+          <UFormField
+            label="Repository Owner"
+            name="owner"
+            required
+          >
             <UInput
-              v-model="owner"
+              v-model="state.owner"
               placeholder="e.g. my-org"
-              required
             />
           </UFormField>
 
-          <UFormField label="Repository Name">
+          <UFormField
+            label="Repository Name"
+            name="name"
+            required
+          >
             <UInput
-              v-model="name"
+              v-model="state.name"
               placeholder="e.g. my-project"
-              required
             />
           </UFormField>
 
           <UFormField
             label="GitHub Token (optional)"
+            name="token"
             hint="Required for private repos"
           >
             <UInput
-              v-model="token"
+              v-model="state.token"
               type="password"
               placeholder="ghp_..."
             />
@@ -96,7 +106,7 @@ async function handleSubmit() {
               :loading="loading"
             />
           </div>
-        </form>
+        </UForm>
       </template>
     </UModal>
   </div>

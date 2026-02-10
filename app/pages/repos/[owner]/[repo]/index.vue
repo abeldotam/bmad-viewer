@@ -78,22 +78,14 @@ const viewTabs = [
 
     <template v-else>
       <!-- Token error banner -->
-      <div
+      <UAlert
         v-if="tokenError"
-        class="flex items-center gap-2 rounded-md bg-warning/10 text-warning px-4 py-3 text-sm mb-4"
-      >
-        <UIcon
-          name="i-lucide-triangle-alert"
-          class="size-5 shrink-0"
-        />
-        <span>GitHub token is invalid or expired. Data may be stale.</span>
-        <NuxtLink
-          to="/dashboard"
-          class="ml-auto underline font-medium whitespace-nowrap"
-        >
-          Go to dashboard
-        </NuxtLink>
-      </div>
+        color="warning"
+        icon="i-lucide-triangle-alert"
+        title="GitHub token is invalid or expired. Data may be stale."
+        :actions="[{ label: 'Go to dashboard', to: '/dashboard', variant: 'outline' }]"
+        class="mb-4"
+      />
 
       <!-- Tab bar -->
       <div class="flex items-center gap-1 border-b border-default mb-6">
