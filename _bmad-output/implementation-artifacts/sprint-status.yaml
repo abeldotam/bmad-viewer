@@ -91,4 +91,4 @@ development_status:
   7-4-adapter-routes-github-api-dual-mode: done
   7-5-nettoyage-code-supabase-migration: done
   7-6-documentation-packaging-docker-open-source: done
-  epic-7-retrospective: optional
+  epic-7-retrospective: done
