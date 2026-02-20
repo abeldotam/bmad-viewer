@@ -2,7 +2,8 @@
 import type { GitHubIssue } from '~~/shared/types/bmad'
 
 const props = defineProps<{
-  repoId: string
+  owner: string
+  repo: string
   storyId: string
 }>()
 
@@ -11,7 +12,7 @@ const issues = ref<GitHubIssue[]>([])
 
 onMounted(async () => {
   try {
-    issues.value = await fetchLinkedIssues(props.repoId, props.storyId)
+    issues.value = await fetchLinkedIssues(props.owner, props.repo, props.storyId)
   } catch {
     // Silently fail — issues are supplementary
   }

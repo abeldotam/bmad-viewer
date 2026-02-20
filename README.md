@@ -85,7 +85,6 @@ pnpm build         # Production build
 
 - **Nuxt 4** — Full-stack Vue framework
 - **Nuxt UI 4** — Component library (Tailwind CSS 4)
-- **SQLite** — Embedded database via better-sqlite3 + Drizzle ORM
 - **nuxt-auth-utils** — GitHub OAuth with encrypted session cookies
 - **Octokit** — GitHub API client (server-side proxy)
 
@@ -95,7 +94,6 @@ pnpm build         # Production build
 
 - Always use **HTTPS** (reverse proxy with nginx, Caddy, or Traefik)
 - Generate a strong `NUXT_SESSION_PASSWORD`: `openssl rand -base64 32`
-- Keep the SQLite database backed up (`data/bmad-viewer.db`)
 - For multi-user: set the OAuth callback URL to your production domain
 
 ### Updating

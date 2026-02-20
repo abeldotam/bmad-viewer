@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { IssueType, Priority } from '~~/shared/types/bmad'
 
-const repoId = inject<Ref<string | null>>('repoId', ref(null))
+const owner = inject<Ref<string>>('repoOwner')!
+const repo = inject<Ref<string>>('repoName')!
 
 const { createNewStory } = useGitHubIssues()
 const { handleError, handleSuccess } = useErrorHandler()
@@ -29,11 +30,11 @@ const priorityOptions = [
 ]
 
 async function handleSubmit() {
-  if (!state.title || !state.description || !repoId?.value) return
+  if (!state.title || !state.description || !owner?.value || !repo?.value) return
   loading.value = true
 
   try {
-    await createNewStory(repoId.value, {
+    await createNewStory(owner.value, repo.value, {
       type: state.type,
       title: state.title,
       description: state.description,

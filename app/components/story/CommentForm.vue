@@ -2,7 +2,8 @@
 const props = defineProps<{
   storyId: string
   epicId: string
-  repoId: string
+  owner: string
+  repo: string
 }>()
 
 const emit = defineEmits<{
@@ -22,7 +23,7 @@ async function handleSubmit() {
   success.value = false
 
   try {
-    await createComment(props.repoId, props.storyId, props.epicId, comment.value)
+    await createComment(props.owner, props.repo, props.storyId, props.epicId, comment.value)
     success.value = true
     comment.value = ''
     emit('submitted')

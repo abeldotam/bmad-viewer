@@ -22,7 +22,7 @@ function isStatusCode(e: unknown, code: number): boolean {
   return !!e && typeof e === 'object' && 'statusCode' in e && (e as { statusCode: number }).statusCode === code
 }
 
-export function provideRepoData(repoId: Ref<string | null>) {
+export function provideRepoData(owner: Ref<string>, repo: Ref<string>) {
   const { fetchDocumentTree, fetchSprintStatus, fetchFileContent: rawFetchFileContent } = useGitHub()
   const api = useApi()
   const { handleError } = useErrorHandler()
@@ -36,27 +36,27 @@ export function provideRepoData(repoId: Ref<string | null>) {
   const tokenError = ref(false)
 
   async function fetchFileContent(path: string): Promise<string> {
-    return rawFetchFileContent(repoId.value!, path)
+    return rawFetchFileContent(owner.value, repo.value, path)
   }
 
-  async function fetchPulls(id: string): Promise<PullRequest[]> {
+  async function fetchPulls(): Promise<PullRequest[]> {
     try {
-      return await api<PullRequest[]>('/api/github/pulls', { params: { repoId: id } })
+      return await api<PullRequest[]>('/api/github/pulls', { params: { owner: owner.value, repo: repo.value } })
     } catch (e) {
       if (isStatusCode(e, 403)) throw e
       return []
     }
   }
 
-  async function loadAll(noCache = false) {
-    if (!repoId.value) return
+  async function loadAll() {
+    if (!owner.value || !repo.value) return
     loading.value = true
     tokenError.value = false
     try {
       const [tree, sprintData, pulls] = await Promise.all([
-        fetchDocumentTree(repoId.value!),
-        fetchSprintStatus(repoId.value!, noCache),
-        fetchPulls(repoId.value!)
+        fetchDocumentTree(owner.value, repo.value),
+        fetchSprintStatus(owner.value, repo.value),
+        fetchPulls()
       ])
 
       documents.value = tree
@@ -88,9 +88,6 @@ export function provideRepoData(repoId: Ref<string | null>) {
         stories: s.stories,
         filePath: ''
       }))
-
-      // Update last synced timestamp (fire-and-forget)
-      api(`/api/repos/${repoId.value}`, { method: 'PATCH' }).catch(() => {})
     } catch (e) {
       if (isStatusCode(e, 403)) {
         tokenError.value = true
@@ -104,14 +101,14 @@ export function provideRepoData(repoId: Ref<string | null>) {
   async function refresh() {
     syncing.value = true
     try {
-      await loadAll(true)
+      await loadAll()
     } finally {
       syncing.value = false
     }
   }
 
-  watch(repoId, (id) => {
-    if (id) loadAll()
+  watch([owner, repo], ([o, r]) => {
+    if (o && r) loadAll()
   }, { immediate: true })
 
   const data: RepoData = {

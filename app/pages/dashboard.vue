@@ -1,18 +1,14 @@
 <script setup lang="ts">
 const { repos, loading, fetchRepos, deleteRepo } = useRepository()
-const { handleError, handleSuccess } = useErrorHandler()
+const { handleSuccess } = useErrorHandler()
 
 onMounted(() => {
   fetchRepos()
 })
 
-async function handleDelete(id: string) {
-  try {
-    await deleteRepo(id)
-    handleSuccess('Repository removed')
-  } catch (e: unknown) {
-    handleError(e, 'Failed to delete repository')
-  }
+function handleDelete(owner: string, name: string) {
+  deleteRepo(owner, name)
+  handleSuccess('Repository removed')
 }
 
 definePageMeta({
@@ -67,7 +63,7 @@ definePageMeta({
     >
       <RepoCard
         v-for="repo in repos"
-        :key="repo.id"
+        :key="`${repo.owner}/${repo.name}`"
         :repo="repo"
         @delete="handleDelete"
       />

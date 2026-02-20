@@ -12,23 +12,11 @@ const breadcrumbItems = computed(() => [
   { label: `${owner.value}/${repo.value}`, icon: 'i-lucide-git-branch' }
 ])
 
-const { repos, fetchRepos } = useRepository()
-
-const repoId = computed(() => {
-  const found = repos.value.find(r => r.owner === owner.value && r.name === repo.value)
-  return found?.id ?? null
-})
-
-onMounted(async () => {
-  if (repos.value.length === 0) {
-    await fetchRepos()
-  }
-})
-
-provide('repoId', repoId)
+provide('repoOwner', owner)
+provide('repoName', repo)
 
 // Preload all repo data (documents, sprints, stories) in parallel
-provideRepoData(repoId)
+provideRepoData(owner, repo)
 </script>
 
 <template>
@@ -38,19 +26,6 @@ provideRepoData(repoId)
       class="mb-4"
     />
 
-    <div
-      v-if="!repoId"
-      class="text-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="text-primary text-4xl animate-spin"
-      />
-      <p class="text-muted text-sm mt-4">
-        Loading repository...
-      </p>
-    </div>
-
-    <NuxtPage v-else />
+    <NuxtPage />
   </UContainer>
 </template>

@@ -55,12 +55,9 @@ export interface BmadDocument {
 }
 
 export interface Repository {
-  id: string
   owner: string
   name: string
   defaultBranch: string | null
-  lastSyncedAt: string | null
-  createdAt: string
 }
 
 export interface CommentPayload {

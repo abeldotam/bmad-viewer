@@ -5,7 +5,6 @@ const route = useRoute()
 const owner = computed(() => route.params.owner as string)
 const repo = computed(() => route.params.repo as string)
 const storyId = computed(() => route.params.id as string)
-const repoId = inject<Ref<string | null>>('repoId')!
 
 const { stories, sprints, loading: repoLoading, fetchFileContent } = useRepoData()
 
@@ -101,7 +100,8 @@ useHead({
         <CommentForm
           :story-id="story.id"
           :epic-id="story.epic"
-          :repo-id="repoId!"
+          :owner="owner"
+          :repo="repo"
         />
       </div>
 
@@ -109,7 +109,8 @@ useHead({
         <StoryMetadata :story="story" />
         <RelatedPRs :pull-requests="storyPRs" />
         <LinkedIssues
-          :repo-id="repoId!"
+          :owner="owner"
+          :repo="repo"
           :story-id="story.id"
         />
       </div>
