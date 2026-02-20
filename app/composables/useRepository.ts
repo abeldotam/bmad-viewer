@@ -28,7 +28,7 @@ export function useRepository() {
 
   async function addRepo(owner: string, name: string) {
     const data = await api<{ owner: string, name: string, defaultBranch: string }>('/api/github/validate', {
-      params: { owner, name }
+      params: { owner, repo: name }
     })
 
     const existing = repos.value.find(r => r.owner === data.owner && r.name === data.name)
