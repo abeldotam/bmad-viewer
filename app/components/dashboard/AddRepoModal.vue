@@ -6,8 +6,7 @@ const open = ref(false)
 
 const state = reactive({
   owner: '',
-  name: '',
-  token: ''
+  name: ''
 })
 const loading = ref(false)
 const error = ref('')
@@ -20,11 +19,10 @@ async function handleSubmit() {
   loading.value = true
   error.value = ''
   try {
-    await addRepo(state.owner, state.name, state.token || undefined)
+    await addRepo(state.owner, state.name)
     handleSuccess(`Repository ${state.owner}/${state.name} added successfully`)
     state.owner = ''
     state.name = ''
-    state.token = ''
     open.value = false
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to add repository'
@@ -71,18 +69,6 @@ async function handleSubmit() {
             <UInput
               v-model="state.name"
               placeholder="e.g. my-project"
-            />
-          </UFormField>
-
-          <UFormField
-            label="GitHub Token (optional)"
-            name="token"
-            hint="Required for private repos"
-          >
-            <UInput
-              v-model="state.token"
-              type="password"
-              placeholder="ghp_..."
             />
           </UFormField>
 

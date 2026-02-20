@@ -1,3 +1,6 @@
+import { and, eq } from 'drizzle-orm'
+import { repositories } from '~~/server/database/schema'
+
 export default defineEventHandler(async (event) => {
   const user = await getAuthUser(event)
   if (!user?.id) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
@@ -14,14 +17,14 @@ export default defineEventHandler(async (event) => {
     updates.default_branch = body.default_branch || null
   }
 
-  const supabase = useServerSupabase(event)
-  const { error } = await supabase
-    .from('repositories')
-    .update(updates)
-    .eq('id', id)
-    .eq('user_id', user.id)
-
-  if (error) throw createError({ statusCode: 500, statusMessage: error.message })
+  const db = useDatabase()
+  db.update(repositories)
+    .set({
+      lastSyncedAt: updates.last_synced_at,
+      ...(updates.default_branch !== undefined && { defaultBranch: updates.default_branch })
+    })
+    .where(and(eq(repositories.id, id), eq(repositories.userId, user.id)))
+    .run()
 
   return { success: true }
 })

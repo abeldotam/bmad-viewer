@@ -1,14 +1,20 @@
 import type { H3Event } from 'h3'
-import { getHeader } from 'h3'
 
-export async function getAuthUser(event: H3Event) {
-  const authHeader = getHeader(event, 'Authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
+export async function getAuthUser(event: H3Event): Promise<{ id: string } | null> {
+  const mode = getAppMode()
 
-  const token = authHeader.substring(7)
-  const supabase = useServerSupabase(event)
-  const { data: { user }, error } = await supabase.auth.getUser(token)
-  if (error || !user) return null
+  if (mode === 'personal') {
+    return { id: 'personal' }
+  }
 
-  return user
+  if (mode === 'multiuser') {
+    try {
+      const session = await requireUserSession(event)
+      return { id: String(session.user.id) }
+    } catch {
+      return null
+    }
+  }
+
+  return null
 }

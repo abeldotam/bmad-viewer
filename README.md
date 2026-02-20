@@ -1,60 +1,127 @@
-# Nuxt Starter Template
+# BMAD Viewer
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+A web app to visualize [BMAD methodology](https://github.com/bmadcode/BMAD-METHOD) projects from GitHub repositories. Track sprints, epics, stories, and browse project documentation — all from your repo's `_bmad-output/` directory.
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+## Features
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-  </picture>
-</a>
+- Browse project documents (PRD, architecture, etc.) rendered as Markdown
+- Sprint roadmap with progress bars per epic
+- Story explorer with table and Kanban views
+- Story detail with metadata, related PRs, and GitHub issue comments
+- Dual-mode: single-user self-host or multi-user with GitHub OAuth
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+## Quick Start — Personal Mode
 
-## Quick Start
-
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
-```
-
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
-
-## Setup
-
-Make sure to install the dependencies:
+For a single user. No OAuth App needed — just a GitHub Personal Access Token.
 
 ```bash
-pnpm install
+# 1. Clone and configure
+git clone https://github.com/abeldotam/bmad-viewer.git
+cd bmad-viewer
+cp .env.example .env
+
+# 2. Set your GitHub token in .env
+# NUXT_GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+
+# 3. Run with Docker
+docker compose up -d
 ```
 
-## Development Server
+Open [http://localhost:3000](http://localhost:3000). No login required.
 
-Start the development server on `http://localhost:3000`:
+> **Without Docker:** `pnpm install && pnpm build && node .output/server/index.mjs`
+
+## Quick Start — Multi-user Mode
+
+For hosting a shared instance (e.g., for a team). Requires a GitHub OAuth App.
+
+### 1. Create a GitHub OAuth App
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Click **New OAuth App**
+3. Fill in:
+   - **Application name:** BMAD Viewer (or anything you like)
+   - **Homepage URL:** `http://localhost:3000` (or your domain)
+   - **Authorization callback URL:** `http://localhost:3000/auth/github`
+4. Click **Register application**
+5. Copy the **Client ID**
+6. Click **Generate a new client secret** and copy it
+
+### 2. Configure and run
 
 ```bash
-pnpm dev
+git clone https://github.com/abeldotam/bmad-viewer.git
+cd bmad-viewer
+cp .env.example .env
 ```
 
-## Production
+Edit `.env`:
 
-Build the application for production:
+```env
+NUXT_GITHUB_CLIENT_ID=your_client_id
+NUXT_GITHUB_CLIENT_SECRET=your_client_secret
+NUXT_SESSION_PASSWORD=$(openssl rand -base64 32)
+```
 
 ```bash
-pnpm build
+docker compose up -d
 ```
 
-Locally preview production build:
+Open [http://localhost:3000](http://localhost:3000) and sign in with GitHub.
+
+## Development
 
 ```bash
-pnpm preview
+pnpm install       # Install dependencies (pnpm 10.28+ required)
+pnpm dev           # Dev server on http://localhost:3000
+pnpm lint          # ESLint
+pnpm typecheck     # TypeScript type checking
+pnpm build         # Production build
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Tech Stack
+
+- **Nuxt 4** — Full-stack Vue framework
+- **Nuxt UI 4** — Component library (Tailwind CSS 4)
+- **SQLite** — Embedded database via better-sqlite3 + Drizzle ORM
+- **nuxt-auth-utils** — GitHub OAuth with encrypted session cookies
+- **Octokit** — GitHub API client (server-side proxy)
+
+## Production Deployment
+
+### Security recommendations
+
+- Always use **HTTPS** (reverse proxy with nginx, Caddy, or Traefik)
+- Generate a strong `NUXT_SESSION_PASSWORD`: `openssl rand -base64 32`
+- Keep the SQLite database backed up (`data/bmad-viewer.db`)
+- For multi-user: set the OAuth callback URL to your production domain
+
+### Updating
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+### Reverse proxy (Caddy example)
+
+```
+bmad.example.com {
+    reverse_proxy localhost:3000
+}
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/my-feature`)
+3. Commit your changes
+4. Push to the branch and open a Pull Request
+
+Please run `pnpm lint && pnpm typecheck` before submitting.
+
+## License
+
+[MIT](LICENSE)

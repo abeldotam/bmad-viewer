@@ -1,40 +1,32 @@
 export function useAuth() {
-  const supabase = useSupabaseClient()
-  const user = useSupabaseUser()
+  const { mode } = useAppMode()
+  const { loggedIn, user, clear } = useUserSession()
 
-  async function login(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
-    await navigateTo('/dashboard')
-  }
+  const isAuthenticated = computed(() => {
+    if (mode.value === 'personal') return true
+    return loggedIn.value
+  })
 
-  async function register(email: string, password: string) {
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) throw error
-    await navigateTo('/dashboard')
-  }
+  const displayName = computed(() => {
+    if (mode.value === 'personal') return 'Personal'
+    return user.value?.name || user.value?.login || 'User'
+  })
 
-  async function loginWithGithub() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${useRequestURL().origin}/auth/callback`
-      }
-    })
-    if (error) throw error
-  }
+  const avatarUrl = computed(() => {
+    if (mode.value === 'personal') return undefined
+    return user.value?.avatarUrl
+  })
 
   async function logout() {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    await clear()
     await navigateTo('/login')
   }
 
   return {
+    isAuthenticated,
     user,
-    login,
-    register,
-    loginWithGithub,
+    displayName,
+    avatarUrl,
     logout
   }
 }
