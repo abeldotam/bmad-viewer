@@ -1,0 +1,9 @@
+services:
+  bmad-viewer:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

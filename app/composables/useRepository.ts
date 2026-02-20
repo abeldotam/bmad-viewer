@@ -18,10 +18,10 @@ export function useRepository() {
     }
   }
 
-  async function addRepo(owner: string, name: string, token?: string) {
+  async function addRepo(owner: string, name: string) {
     const data = await api<Repository>('/api/repos', {
       method: 'POST',
-      body: { owner, name, token }
+      body: { owner, name }
     })
     repos.value.unshift(data)
     return data

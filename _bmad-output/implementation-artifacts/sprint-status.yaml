@@ -82,3 +82,13 @@ development_status:
   6-1-commentaire-sur-story-issue-github: done
   6-2-nouvelle-story-bug-via-formulaire-dedie: done
   epic-6-retrospective: done
+
+  # Epic 7: Transition open-source & self-host
+  epic-7: done
+  7-1-detection-dual-mode-configuration-runtime: done
+  7-2-remplacement-auth-supabase-par-nuxt-auth-utils: done
+  7-3-remplacement-postgresql-par-sqlite-drizzle: done
+  7-4-adapter-routes-github-api-dual-mode: done
+  7-5-nettoyage-code-supabase-migration: done
+  7-6-documentation-packaging-docker-open-source: done
+  epic-7-retrospective: optional

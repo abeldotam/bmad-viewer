@@ -1,3 +1,6 @@
+import { and, eq } from 'drizzle-orm'
+import { repositories, cachedFiles } from '~~/server/database/schema'
+
 const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
 export default defineEventHandler(async (event) => {
@@ -13,47 +16,48 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'repoId and path are required' })
   }
 
-  const supabase = useServerSupabase(event)
+  const db = useDatabase()
 
-  const { data: cached } = await supabase
-    .from('cached_files')
-    .select('content, sha, cached_at')
-    .eq('repository_id', repoId)
-    .eq('path', path)
-    .single()
+  // Check cache
+  const cached = db.select().from(cachedFiles)
+    .where(and(eq(cachedFiles.repositoryId, repoId), eq(cachedFiles.path, path)))
+    .get()
 
-  // Return fresh cache if TTL not expired and not forced refresh
-  if (!noCache && cached?.content && cached.cached_at) {
-    const age = Date.now() - new Date(cached.cached_at).getTime()
+  if (!noCache && cached?.content && cached.cachedAt) {
+    const age = Date.now() - new Date(cached.cachedAt).getTime()
     if (age < CACHE_TTL_MS) {
       return { content: cached.content, fromCache: true }
     }
   }
 
-  const { data: repo, error: repoError } = await supabase
-    .from('repositories')
-    .select('owner, name, github_token_encrypted, default_branch')
-    .eq('id', repoId)
-    .eq('user_id', user.id)
-    .single()
+  // Get repo
+  const repo = db.select().from(repositories)
+    .where(and(eq(repositories.id, repoId), eq(repositories.userId, user.id)))
+    .get()
 
-  if (repoError || !repo) throw createError({ statusCode: 404, statusMessage: 'Repository not found' })
+  if (!repo) throw createError({ statusCode: 404, statusMessage: 'Repository not found' })
 
-  const token = repo.github_token_encrypted ? decrypt(repo.github_token_encrypted as string) : ''
+  const token = await getGitHubToken(event)
   const octokit = createOctokit(token)
-  const branch = (repo.default_branch as string | null) || undefined
+  const branch = repo.defaultBranch || undefined
 
   try {
-    const content = await getFileContent(octokit, repo.owner as string, repo.name as string, path, branch)
+    const content = await getFileContent(octokit, repo.owner, repo.name, path, branch)
 
-    await supabase
-      .from('cached_files')
-      .upsert({
-        repository_id: repoId,
+    // Upsert cache
+    if (cached) {
+      db.update(cachedFiles)
+        .set({ content, cachedAt: new Date().toISOString() })
+        .where(and(eq(cachedFiles.repositoryId, repoId), eq(cachedFiles.path, path)))
+        .run()
+    } else {
+      db.insert(cachedFiles).values({
+        repositoryId: repoId,
         path,
         content,
-        cached_at: new Date().toISOString()
-      }, { onConflict: 'repository_id,path' })
+        cachedAt: new Date().toISOString()
+      }).run()
+    }
 
     return { content, fromCache: false }
   } catch (e) {

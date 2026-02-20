@@ -4,7 +4,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxtjs/mdc',
-    '@nuxtjs/supabase'
+    'nuxt-auth-utils'
   ],
 
   ssr: false,
@@ -20,6 +20,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    githubToken: '',
+    githubClientId: '',
+    githubClientSecret: '',
+    sessionPassword: ''
+  },
+
   routeRules: {},
 
   compatibilityDate: '2025-01-15',
@@ -31,10 +38,5 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  },
-
-  supabase: {
-    redirect: false,
-    useSsrCookies: false
   }
 })

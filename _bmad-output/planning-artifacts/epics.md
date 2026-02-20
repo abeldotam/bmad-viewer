@@ -565,3 +565,175 @@ So that **I can propose changes following the BMAD methodology without modifying
 **Then** I see a success toast with a link to the created issue
 
 **Implementation scope :** `NewStoryModal.vue` (formulaire type/titre/description/epic/priorité), `useGitHubIssues.ts` (`createNewStory()`), templates dans `issueTemplates.ts`, bouton flottant dans `app.vue` (visible en contexte repo).
+
+## Epic 7 : Transition open-source & self-host
+
+L'application se libère de la dépendance Supabase pour devenir un projet open-source auto-hébergeable, avec deux modes de fonctionnement : Personal (mono-utilisateur, PAT en env) et Multi-user (GitHub OAuth, SQLite embarqué).
+
+**Contexte :** Brainstorming session du 2026-02-20. Décision de remplacer Supabase Auth par `nuxt-auth-utils` (GitHub OAuth), PostgreSQL par SQLite + Drizzle ORM, et d'éliminer le stockage persistant des tokens GitHub (session cookie chiffré uniquement).
+
+**FRs impactés :** FR1 (supprimé — plus d'inscription email), FR2 (modifié — OAuth direct via nuxt-auth-utils), FR7 (modifié — plus de token à fournir manuellement), FR10 (supprimé — plus de stockage chiffré en base)
+
+**Nouveaux FRs :**
+
+| FR | Description |
+|----|-------------|
+| FR-OS1 | L'application détecte le mode (Personal/Multi-user) via les variables d'environnement |
+| FR-OS2 | En mode Personal, l'utilisateur accède directement sans écran de login |
+| FR-OS3 | En mode Multi-user, l'utilisateur se connecte via GitHub OAuth |
+| FR-OS4 | Les données utilisateur (repos) sont stockées dans SQLite embarqué |
+| FR-OS5 | Le token GitHub n'est jamais persisté — il vit uniquement en session |
+| FR-OS6 | L'application est installable en self-host via Docker en moins de 5 minutes |
+| FR-OS7 | La documentation couvre les deux modes d'installation |
+
+### Story 7.1 : Détection dual-mode & configuration runtime
+
+As a **self-hoster**,
+I want **the application to detect automatically si je suis en mode Personal ou Multi-user via mes variables d'environnement**,
+So that **l'application se configure correctement sans intervention manuelle**.
+
+**Acceptance Criteria:**
+
+**Given** `GITHUB_TOKEN` est défini dans `.env`
+**When** l'application démarre
+**Then** elle fonctionne en mode Personal (pas de login screen, accès direct)
+
+**Given** `GITHUB_CLIENT_ID` et `GITHUB_CLIENT_SECRET` sont définis
+**When** l'application démarre
+**Then** elle fonctionne en mode Multi-user (login screen, GitHub OAuth)
+
+**Given** aucune variable n'est définie
+**When** l'application démarre
+**Then** une page d'onboarding guide l'utilisateur vers la configuration
+
+**Implementation scope :** `server/utils/mode.ts`, `nuxt.config.ts` (runtimeConfig.public.appMode), `.env.example`.
+
+### Story 7.2 : Remplacement auth Supabase par nuxt-auth-utils
+
+As a **utilisateur**,
+I want **to sign in with my GitHub account via OAuth (mode Multi-user) or access directly (mode Personal)**,
+So that **I can use bmad-viewer without depending on Supabase**.
+
+**Acceptance Criteria:**
+
+**Given** je suis en mode Multi-user
+**When** je visite l'application sans être connecté
+**Then** je suis redirigé vers la page de login avec un bouton "Sign in with GitHub"
+
+**Given** je clique "Sign in with GitHub"
+**When** j'autorise l'application sur GitHub
+**Then** je suis redirigé vers le dashboard, ma session est dans un cookie chiffré
+
+**Given** je suis connecté
+**When** je rafraîchis la page
+**Then** ma session persiste (cookie chiffré)
+
+**Given** je suis en mode Personal
+**When** je visite l'application
+**Then** j'accède directement au dashboard sans écran de login
+
+**Implementation scope :** Retirer `@nuxtjs/supabase`, installer `nuxt-auth-utils`. Réécrire `useAuth.ts`, `auth.global.ts`, `server/utils/auth.ts`. Créer `server/routes/auth/github.get.ts`. Supprimer `register.vue`, `auth/callback.vue`. Adapter `login.vue`.
+
+### Story 7.3 : Remplacement PostgreSQL Supabase par SQLite + Drizzle
+
+As a **self-hoster**,
+I want **repository data stored in an embedded SQLite database instead of Supabase PostgreSQL**,
+So that **I don't need any external database service**.
+
+**Acceptance Criteria:**
+
+**Given** l'application démarre pour la première fois
+**When** SQLite est initialisé
+**Then** la base `data/bmad-viewer.db` est créée automatiquement avec le schéma correct
+
+**Given** je suis en mode Multi-user
+**When** j'ajoute un repo
+**Then** il est stocké dans SQLite avec mon `user_id` GitHub
+
+**Given** je suis en mode Personal
+**When** j'ajoute un repo
+**Then** il est stocké avec `user_id = 'personal'`
+
+**Given** le schéma contient les mêmes tables que l'actuel (repositories, cached_files)
+**When** je compare les fonctionnalités
+**Then** toutes les opérations CRUD fonctionnent identiquement
+
+**Implementation scope :** Installer `better-sqlite3`, `drizzle-orm`, `drizzle-kit`. Créer `server/database/schema.ts`, `server/database/index.ts`. La colonne `github_token_encrypted` est supprimée du schéma. Supprimer `server/utils/supabase.ts`, `server/utils/encryption.ts`, `app/types/database.types.ts`, `supabase/`.
+
+### Story 7.4 : Adapter les routes GitHub API au dual-mode
+
+As a **utilisateur**,
+I want **GitHub API routes to use my OAuth session token (Multi-user) or the env PAT (Personal)**,
+So that **all GitHub features work identically in both modes without stored tokens**.
+
+**Acceptance Criteria:**
+
+**Given** je suis en mode Personal
+**When** une route API GitHub est appelée
+**Then** elle utilise `process.env.GITHUB_TOKEN`
+
+**Given** je suis en mode Multi-user
+**When** une route API GitHub est appelée
+**Then** elle utilise le token OAuth de ma session
+
+**Given** mon token OAuth expire ou est révoqué
+**When** une requête GitHub échoue avec 401
+**Then** l'utilisateur voit un message explicite et est invité à se reconnecter
+
+**Given** j'ajoute un repo
+**When** le formulaire est soumis
+**Then** il n'y a plus de champ "GitHub token" (le token vient de la session ou de l'env)
+
+**Implementation scope :** Créer `server/utils/github-token.ts`. Modifier tous les fichiers `server/api/github/*.ts` pour utiliser le nouveau helper. Modifier `server/api/repos.post.ts` (retirer encryption, validation token). Modifier `AddRepoModal.vue` (retirer champ token). Modifier `useRepository.ts`.
+
+### Story 7.5 : Nettoyage code Supabase & migration
+
+As a **développeur**,
+I want **all Supabase-specific code removed cleanly from the codebase**,
+So that **the project has no dead code or phantom dependencies**.
+
+**Acceptance Criteria:**
+
+**Given** la migration est terminée
+**When** je cherche "supabase" dans le code
+**Then** aucun résultat n'apparaît (hors CHANGELOG/docs historiques)
+
+**Given** les dépendances sont nettoyées
+**When** je regarde `package.json`
+**Then** `@nuxtjs/supabase`, `@supabase/supabase-js` ne sont plus présents
+
+**Given** le module encryption est supprimé
+**When** je cherche "encrypt" ou "decrypt" dans le code
+**Then** aucun résultat n'apparaît
+
+**Given** je lance `pnpm lint && pnpm typecheck`
+**When** le CI s'exécute
+**Then** aucune erreur liée à des imports manquants ou types supprimés
+
+**Implementation scope :** Supprimer `server/utils/encryption.ts`, `server/utils/supabase.ts`, `app/types/database.types.ts`, `supabase/` (dossier complet), `app/pages/register.vue`, `app/pages/auth/callback.vue`. Retirer deps du `package.json`. Mettre à jour `nuxt.config.ts`. Vérifier CI.
+
+### Story 7.6 : Documentation, packaging Docker & open-source
+
+As a **nouveau contributeur ou self-hoster**,
+I want **clear documentation and a Docker setup to install bmad-viewer in under 5 minutes**,
+So that **I can get started without understanding the internals**.
+
+**Acceptance Criteria:**
+
+**Given** je clone le repo
+**When** je lis le README
+**Then** je trouve un Quick Start pour le mode Personal (3 étapes) et Multi-user (5 étapes)
+
+**Given** je copie `.env.example`
+**When** je lis les commentaires
+**Then** chaque variable est documentée avec son rôle et le mode concerné
+
+**Given** je lance `docker compose up`
+**When** le build est terminé
+**Then** l'application est accessible sur `http://localhost:3000`
+
+**Given** je veux contribuer
+**When** je lis le README
+**Then** je trouve la licence, les guidelines de contribution, et comment lancer en dev
+
+**Implementation scope :** Réécrire `README.md`, créer `.env.example`, `Dockerfile`, `docker-compose.yml`, choisir licence (MIT). `.gitignore` pour `data/`, `*.sqlite`.

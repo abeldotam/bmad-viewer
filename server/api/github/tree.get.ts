@@ -1,3 +1,6 @@
+import { and, eq } from 'drizzle-orm'
+import { repositories } from '~~/server/database/schema'
+
 export default defineEventHandler(async (event) => {
   const user = await getAuthUser(event)
   if (!user?.id) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
@@ -7,23 +10,19 @@ export default defineEventHandler(async (event) => {
 
   if (!repoId) throw createError({ statusCode: 400, statusMessage: 'repoId is required' })
 
-  const supabase = useServerSupabase(event)
-  const { data: repo, error } = await supabase
-    .from('repositories')
-    .select('owner, name, github_token_encrypted, default_branch')
-    .eq('id', repoId)
-    .eq('user_id', user.id)
-    .single()
+  const db = useDatabase()
+  const repo = db.select().from(repositories)
+    .where(and(eq(repositories.id, repoId), eq(repositories.userId, user.id)))
+    .get()
 
-  if (error || !repo) throw createError({ statusCode: 404, statusMessage: 'Repository not found' })
+  if (!repo) throw createError({ statusCode: 404, statusMessage: 'Repository not found' })
 
-  const token = repo.github_token_encrypted ? decrypt(repo.github_token_encrypted as string) : ''
+  const token = await getGitHubToken(event)
   const octokit = createOctokit(token)
-  const branch = (repo.default_branch as string | null) || undefined
+  const branch = repo.defaultBranch || undefined
 
   try {
-    const files = await listBmadFiles(octokit, repo.owner as string, repo.name as string, branch)
-    return files
+    return await listBmadFiles(octokit, repo.owner, repo.name, branch)
   } catch (e) {
     if (isGitHubAuthError(e)) {
       throw createError({ statusCode: 403, statusMessage: 'GitHub token invalid or expired' })

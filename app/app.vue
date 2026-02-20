@@ -24,11 +24,11 @@ useSeoMeta({
 const route = useRoute()
 const isRepoContext = computed(() => route.path.startsWith('/repos/'))
 
-const { user, logout } = useAuth()
+const { isAuthenticated, displayName, avatarUrl, logout } = useAuth()
 
 const userMenuItems = computed(() => [
   [{
-    label: user.value?.email || 'Account',
+    label: displayName.value,
     disabled: true
   }],
   [{
@@ -70,10 +70,11 @@ const userMenuItems = computed(() => [
               variant="ghost"
             />
 
-            <template v-if="user">
+            <template v-if="isAuthenticated">
               <UDropdownMenu :items="userMenuItems">
                 <UAvatar
-                  :alt="user.email || 'User'"
+                  :src="avatarUrl"
+                  :alt="displayName"
                   size="sm"
                   class="cursor-pointer"
                 />

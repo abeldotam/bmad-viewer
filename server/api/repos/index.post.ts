@@ -1,52 +1,55 @@
+import { and, eq } from 'drizzle-orm'
+import { repositories } from '~~/server/database/schema'
+
 export default defineEventHandler(async (event) => {
   const user = await getAuthUser(event)
   if (!user?.id) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const body = await readBody<{ owner: string, name: string, token?: string }>(event)
+  const body = await readBody<{ owner: string, name: string }>(event)
 
   if (!body.owner || !body.name) {
     throw createError({ statusCode: 400, statusMessage: 'owner and name are required' })
   }
 
+  // Validate repo access with the user's token
+  const token = await getGitHubToken(event)
   let defaultBranch: string | null = null
-  if (body.token) {
-    try {
-      const octokit = createOctokit(body.token)
-      const { data: repoInfo } = await octokit.rest.repos.get({ owner: body.owner, repo: body.name })
-      defaultBranch = repoInfo.default_branch
-    } catch {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid token or repository not accessible' })
-    }
+  try {
+    const octokit = createOctokit(token)
+    const { data: repoInfo } = await octokit.rest.repos.get({ owner: body.owner, repo: body.name })
+    defaultBranch = repoInfo.default_branch
+  } catch {
+    throw createError({ statusCode: 400, statusMessage: 'Repository not accessible. Check that the repo exists and your token has access.' })
   }
 
-  const encryptedToken = body.token ? encrypt(body.token) : null
+  const db = useDatabase()
 
-  const supabase = useServerSupabase(event)
-  const { data, error } = await supabase
-    .from('repositories')
-    .insert({
-      user_id: user.id,
-      owner: body.owner,
-      name: body.name,
-      github_token_encrypted: encryptedToken,
-      default_branch: defaultBranch
-    })
-    .select('id, owner, name, default_branch, last_synced_at, created_at')
-    .single()
+  // Check for duplicates
+  const existing = db.select().from(repositories)
+    .where(and(
+      eq(repositories.userId, user.id),
+      eq(repositories.owner, body.owner),
+      eq(repositories.name, body.name)
+    ))
+    .get()
 
-  if (error) {
-    if (error.code === '23505') {
-      throw createError({ statusCode: 409, statusMessage: 'Repository already exists' })
-    }
-    throw createError({ statusCode: 500, statusMessage: error.message })
+  if (existing) {
+    throw createError({ statusCode: 409, statusMessage: 'Repository already exists' })
   }
+
+  const inserted = db.insert(repositories).values({
+    userId: user.id,
+    owner: body.owner,
+    name: body.name,
+    defaultBranch
+  }).returning().get()
 
   return {
-    id: data.id,
-    owner: data.owner,
-    name: data.name,
-    defaultBranch: data.default_branch,
-    lastSyncedAt: data.last_synced_at,
-    createdAt: data.created_at
+    id: inserted.id,
+    owner: inserted.owner,
+    name: inserted.name,
+    defaultBranch: inserted.defaultBranch,
+    lastSyncedAt: inserted.lastSyncedAt,
+    createdAt: inserted.createdAt
   }
 })

@@ -1,22 +1,23 @@
+import { eq } from 'drizzle-orm'
+import { repositories } from '~~/server/database/schema'
+
 export default defineEventHandler(async (event) => {
   const user = await getAuthUser(event)
   if (!user?.id) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const supabase = useServerSupabase(event)
-  const { data, error } = await supabase
-    .from('repositories')
-    .select('id, owner, name, default_branch, last_synced_at, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+  const db = useDatabase()
+  const data = db.select().from(repositories)
+    .where(eq(repositories.userId, user.id))
+    .orderBy(repositories.createdAt)
+    .all()
+    .reverse()
 
-  if (error) throw createError({ statusCode: 500, statusMessage: error.message })
-
-  return (data ?? []).map((r: Record<string, unknown>) => ({
+  return data.map((r: typeof data[number]) => ({
     id: r.id,
     owner: r.owner,
     name: r.name,
-    defaultBranch: r.default_branch ?? null,
-    lastSyncedAt: r.last_synced_at,
-    createdAt: r.created_at
+    defaultBranch: r.defaultBranch ?? null,
+    lastSyncedAt: r.lastSyncedAt,
+    createdAt: r.createdAt
   }))
 })
