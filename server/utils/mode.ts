@@ -2,7 +2,7 @@ export type AppMode = 'personal' | 'multiuser' | 'unconfigured'
 
 export function getAppMode(): AppMode {
   const config = useRuntimeConfig()
-  if (config.githubClientId && config.githubClientSecret) {
+  if (config.oauth?.github?.clientId && config.oauth?.github?.clientSecret) {
     return 'multiuser'
   }
   if (config.githubToken) {

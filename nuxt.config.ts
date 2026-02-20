@@ -22,9 +22,12 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     githubToken: '',
-    githubClientId: '',
-    githubClientSecret: '',
-    sessionPassword: ''
+    oauth: {
+      github: {
+        clientId: '',
+        clientSecret: ''
+      }
+    }
   },
 
   routeRules: {},

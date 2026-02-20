@@ -38,7 +38,7 @@ So that **l'application se configure correctement sans intervention manuelle**.
 Le mode est calculé côté serveur via `useRuntimeConfig()` dans `server/utils/mode.ts`. Les env vars utilisent le préfixe `NUXT_` pour être auto-injectées par Nitro :
 
 - `NUXT_GITHUB_TOKEN` → mode personal
-- `NUXT_GITHUB_CLIENT_ID` + `NUXT_GITHUB_CLIENT_SECRET` → mode multiuser
+- `NUXT_OAUTH_GITHUB_CLIENT_ID` + `NUXT_OAUTH_GITHUB_CLIENT_SECRET` → mode multiuser
 - Rien → mode unconfigured
 
 Le mode est exposé au client via `/api/_config` (pas de runtimeConfig.public pour éviter d'exposer les tokens). Le composable `useAppMode()` cache le résultat dans `useState`. Un plugin Nuxt le charge au démarrage.
