@@ -1,28 +1,66 @@
 <script setup lang="ts">
 const { addRepo } = useRepository()
 const { handleSuccess } = useErrorHandler()
+const api = useApi()
 
 const open = ref(false)
 
-const state = reactive({
-  owner: '',
-  name: ''
-})
+const selected = ref('')
 const loading = ref(false)
 const error = ref('')
 
+interface GitHubRepo {
+  owner: string
+  name: string
+  fullName: string
+  description: string | null
+}
+
+const repos = ref<GitHubRepo[]>([])
+const loadingRepos = ref(false)
+
+const items = computed(() =>
+  repos.value.map(r => ({
+    label: r.fullName,
+    value: r.fullName,
+    description: r.description || undefined
+  }))
+)
+
+async function fetchRepos() {
+  loadingRepos.value = true
+  error.value = ''
+  try {
+    repos.value = await api<GitHubRepo[]>('/api/github/repos')
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Failed to load repositories'
+  } finally {
+    loadingRepos.value = false
+  }
+}
+
+watch(open, (isOpen) => {
+  if (isOpen) {
+    selected.value = ''
+    error.value = ''
+    fetchRepos()
+  }
+})
+
 async function handleSubmit() {
-  if (!state.owner || !state.name) {
-    error.value = 'Owner and name are required'
+  if (!selected.value) {
+    error.value = 'Please select a repository'
     return
   }
+  const parts = selected.value.split('/')
+  const owner = parts[0]!
+  const name = parts[1]!
   loading.value = true
   error.value = ''
   try {
-    await addRepo(state.owner, state.name)
-    handleSuccess(`Repository ${state.owner}/${state.name} added successfully`)
-    state.owner = ''
-    state.name = ''
+    await addRepo(owner, name)
+    handleSuccess(`Repository ${selected.value} added successfully`)
+    selected.value = ''
     open.value = false
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to add repository'
@@ -45,30 +83,23 @@ async function handleSubmit() {
       title="Add Repository"
     >
       <template #body>
-        <UForm
-          :state="state"
+        <form
           class="space-y-4"
-          @submit="handleSubmit"
+          @submit.prevent="handleSubmit"
         >
           <UFormField
-            label="Repository Owner"
-            name="owner"
+            label="Repository"
+            name="repo"
             required
           >
-            <UInput
-              v-model="state.owner"
-              placeholder="e.g. my-org"
-            />
-          </UFormField>
-
-          <UFormField
-            label="Repository Name"
-            name="name"
-            required
-          >
-            <UInput
-              v-model="state.name"
-              placeholder="e.g. my-project"
+            <USelectMenu
+              v-model="selected"
+              :items="items"
+              value-key="value"
+              searchable
+              placeholder="Search your repositories..."
+              :loading="loadingRepos"
+              class="w-full"
             />
           </UFormField>
 
@@ -90,9 +121,10 @@ async function handleSubmit() {
               type="submit"
               label="Add Repository"
               :loading="loading"
+              :disabled="!selected"
             />
           </div>
-        </UForm>
+        </form>
       </template>
     </UModal>
   </div>
