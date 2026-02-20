@@ -60,8 +60,8 @@ cp .env.example .env
 Edit `.env`:
 
 ```env
-NUXT_GITHUB_CLIENT_ID=your_client_id
-NUXT_GITHUB_CLIENT_SECRET=your_client_secret
+NUXT_OAUTH_GITHUB_CLIENT_ID=your_client_id
+NUXT_OAUTH_GITHUB_CLIENT_SECRET=your_client_secret
 NUXT_SESSION_PASSWORD=$(openssl rand -base64 32)
 ```
 

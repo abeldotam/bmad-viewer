@@ -95,8 +95,8 @@ definePageMeta({
                 >
                   <template #description>
                     <p class="font-mono text-xs">
-                      NUXT_GITHUB_CLIENT_ID=your_client_id<br>
-                      NUXT_GITHUB_CLIENT_SECRET=your_client_secret<br>
+                      NUXT_OAUTH_GITHUB_CLIENT_ID=your_client_id<br>
+                      NUXT_OAUTH_GITHUB_CLIENT_SECRET=your_client_secret<br>
                       NUXT_SESSION_PASSWORD=your_session_secret
                     </p>
                     <p class="text-xs mt-1 text-(--ui-text-muted)">

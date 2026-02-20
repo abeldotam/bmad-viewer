@@ -37,7 +37,7 @@ Package manager is **pnpm 10.28.2** (enforced via `packageManager` field). Do no
 The app supports two modes, auto-detected from environment variables:
 
 - **Personal mode**: `NUXT_GITHUB_TOKEN` set — single user, no login, PAT in env
-- **Multi-user mode**: `NUXT_GITHUB_CLIENT_ID` + `NUXT_GITHUB_CLIENT_SECRET` set — GitHub OAuth login
+- **Multi-user mode**: `NUXT_OAUTH_GITHUB_CLIENT_ID` + `NUXT_OAUTH_GITHUB_CLIENT_SECRET` set — GitHub OAuth login
 - **Unconfigured**: No env vars set — shows setup page
 
 Mode detection: `server/utils/mode.ts` → exposed to client via `/api/_config` endpoint.
