@@ -3,30 +3,30 @@ import type { BmadDocument } from '~~/shared/types/bmad'
 export function useGitHub() {
   const api = useApi()
 
-  async function fetchDocumentTree(repoId: string): Promise<BmadDocument[]> {
+  async function fetchDocumentTree(owner: string, repo: string): Promise<BmadDocument[]> {
     const files = await api<{ path: string, type: 'file' | 'directory' }[]>('/api/github/tree', {
-      params: { repoId }
+      params: { owner, repo }
     })
 
     const { buildDocumentTree } = useBmadParser()
     return buildDocumentTree(files)
   }
 
-  async function fetchFileContent(repoId: string, path: string, noCache = false): Promise<string> {
-    const data = await api<{ content: string, fromCache: boolean }>('/api/github/contents', {
-      params: { repoId, path, ...(noCache && { noCache: 'true' }) }
+  async function fetchFileContent(owner: string, repo: string, path: string): Promise<string> {
+    const data = await api<{ content: string }>('/api/github/contents', {
+      params: { owner, repo, path }
     })
     return data.content
   }
 
-  async function fetchSprintStatus(repoId: string, noCache = false) {
+  async function fetchSprintStatus(owner: string, repo: string) {
     const paths = [
       '_bmad-output/implementation-artifacts/sprint-status.yaml',
       '_bmad-output/sprint-status.yaml'
     ]
     for (const path of paths) {
       try {
-        const content = await fetchFileContent(repoId, path, noCache)
+        const content = await fetchFileContent(owner, repo, path)
         const { parseSprintStatus } = useBmadParser()
         const result = parseSprintStatus(content)
 
@@ -51,11 +51,11 @@ export function useGitHub() {
     return { currentSprint: 0, sprints: [] }
   }
 
-  async function fetchStories(repoId: string, storyPaths: string[]) {
+  async function fetchStories(owner: string, repo: string, storyPaths: string[]) {
     const { parseStory } = useBmadParser()
     const results = await Promise.allSettled(
       storyPaths.map(async (path) => {
-        const content = await fetchFileContent(repoId, path)
+        const content = await fetchFileContent(owner, repo, path)
         return parseStory(content, path)
       })
     )

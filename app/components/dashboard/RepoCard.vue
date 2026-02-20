@@ -6,17 +6,17 @@ const props = defineProps<{
 }>()
 
 defineEmits<{
-  delete: [id: string]
+  delete: [owner: string, name: string]
 }>()
 
 const { updateBranch } = useRepository()
-const { handleError, handleSuccess } = useErrorHandler()
+const { handleSuccess } = useErrorHandler()
 
 const editOpen = ref(false)
 const branchInput = ref(props.repo.defaultBranch ?? '')
 const saving = ref(false)
 
-async function saveBranch() {
+function saveBranch() {
   const trimmed = branchInput.value.trim()
   const newValue = trimmed || null
   if (newValue === props.repo.defaultBranch) {
@@ -24,15 +24,10 @@ async function saveBranch() {
     return
   }
   saving.value = true
-  try {
-    await updateBranch(props.repo.id, newValue)
-    handleSuccess(newValue ? `Branch updated to ${newValue}` : 'Branch reset to default')
-    editOpen.value = false
-  } catch (e) {
-    handleError(e, 'Failed to update branch')
-  } finally {
-    saving.value = false
-  }
+  updateBranch(props.repo.owner, props.repo.name, newValue)
+  handleSuccess(newValue ? `Branch updated to ${newValue}` : 'Branch reset to default')
+  editOpen.value = false
+  saving.value = false
 }
 </script>
 
@@ -81,18 +76,6 @@ async function saveBranch() {
               </div>
             </template>
           </UPopover>
-          <span
-            v-if="repo.lastSyncedAt"
-            class="text-xs text-muted"
-          >
-            Last synced: {{ new Date(repo.lastSyncedAt).toLocaleDateString() }}
-          </span>
-          <span
-            v-else
-            class="text-xs text-muted"
-          >
-            Never synced
-          </span>
         </div>
       </div>
       <UButton
@@ -101,7 +84,7 @@ async function saveBranch() {
         variant="ghost"
         size="xs"
         aria-label="Delete repository"
-        @click="$emit('delete', repo.id)"
+        @click="$emit('delete', repo.owner, repo.name)"
       />
     </div>
   </UCard>

@@ -27,7 +27,6 @@ Package manager is **pnpm 10.28.2** (enforced via `packageManager` field). Do no
 - **TypeScript 5.9**
 - **Iconify** icon sets: `lucide` (UI icons) and `simple-icons` (brand icons)
 - **nuxt-auth-utils** — GitHub OAuth for multi-user mode, encrypted session cookies
-- **SQLite + Drizzle ORM** — Embedded database (better-sqlite3), no external DB required
 - **Octokit** — GitHub API client (proxied through server routes)
 
 ## Architecture
@@ -60,7 +59,7 @@ app/
 ├── composables/
 │   ├── useAuth.ts          # Auth state (dual-mode aware)
 │   ├── useAppMode.ts       # App mode detection (client-side)
-│   ├── useRepository.ts    # Repository CRUD
+│   ├── useRepository.ts    # Repository CRUD (localStorage)
 │   └── useApi.ts           # $fetch wrapper
 ├── middleware/
 │   └── auth.global.ts      # Route protection (dual-mode)
@@ -69,18 +68,13 @@ app/
 server/
 ├── api/
 │   ├── _config.get.ts      # Exposes app mode to client
-│   ├── repos/              # CRUD for repositories (SQLite/Drizzle)
-│   └── github/             # GitHub API proxy (contents, tree, issues, pulls)
+│   └── github/             # GitHub API proxy (contents, tree, issues, pulls, validate)
 ├── routes/
 │   └── auth/github.get.ts  # OAuth handler (nuxt-auth-utils)
-├── database/
-│   └── schema.ts           # Drizzle ORM schema
 └── utils/
     ├── mode.ts             # Dual-mode detection
-    ├── auth.ts             # getAuthUser() — session or 'personal'
     ├── github-token.ts     # getGitHubToken() — session or env PAT
-    ├── github.ts           # Octokit helpers
-    └── database.ts         # SQLite connection singleton
+    └── github.ts           # Octokit helpers
 shared/
 └── types/
     └── auth.d.ts           # #auth-utils User type augmentation
@@ -100,7 +94,8 @@ The app parses these files from a GitHub repo's `_bmad-output/` directory:
 - **SSR disabled** (`ssr: false`) — reka-ui crashes in SSR
 - **State management**: `useState` + `provide/inject` (no Pinia)
 - **Tabs**: `v-show` pattern to preserve component state
-- **GitHub tokens never stored in DB** — lives in session cookie (multi-user) or env var (personal)
+- **No server-side database** — repositories stored in browser localStorage
+- **GitHub tokens** live in session cookie (multi-user) or env var (personal), never client-side
 - **All GitHub API calls proxied** through `server/api/github/*` — token never client-side
 
 ## Configuration
