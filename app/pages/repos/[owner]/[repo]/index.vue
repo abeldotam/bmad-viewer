@@ -66,226 +66,223 @@ const viewTabs = [
 
 <template>
   <div>
-    <div
-      v-if="loading"
-      class="text-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="text-primary text-4xl animate-spin"
+    <!-- Token error banner -->
+    <UAlert
+      v-if="tokenError"
+      color="warning"
+      icon="i-lucide-triangle-alert"
+      title="GitHub token is invalid or expired. Data may be stale."
+      :actions="[{ label: 'Go to dashboard', to: '/dashboard', variant: 'outline' }]"
+      class="mb-4"
+    />
+
+    <!-- Tab bar (always visible) -->
+    <div class="flex items-center gap-1 border-b border-default mb-6">
+      <button
+        v-for="tab in tabs"
+        :key="tab.value"
+        class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors"
+        :class="activeTab === tab.value ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'"
+        @click="activeTab = tab.value"
+      >
+        <UIcon
+          :name="tab.icon"
+          class="size-4"
+        />
+        {{ tab.label }}
+      </button>
+
+      <UButton
+        icon="i-lucide-refresh-cw"
+        variant="ghost"
+        size="sm"
+        :loading="syncing"
+        class="ml-auto"
+        @click="refresh"
       />
     </div>
 
-    <template v-else>
-      <!-- Token error banner -->
-      <UAlert
-        v-if="tokenError"
-        color="warning"
-        icon="i-lucide-triangle-alert"
-        title="GitHub token is invalid or expired. Data may be stale."
-        :actions="[{ label: 'Go to dashboard', to: '/dashboard', variant: 'outline' }]"
-        class="mb-4"
-      />
-
-      <!-- Tab bar -->
-      <div class="flex items-center gap-1 border-b border-default mb-6">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors"
-          :class="activeTab === tab.value ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'"
-          @click="activeTab = tab.value"
-        >
-          <UIcon
-            :name="tab.icon"
-            class="size-4"
-          />
-          {{ tab.label }}
-        </button>
-
-        <UButton
-          icon="i-lucide-refresh-cw"
-          variant="ghost"
-          size="sm"
-          :loading="syncing"
-          class="ml-auto"
-          @click="refresh"
+    <!-- Roadmap tab -->
+    <div v-show="activeTab === 'roadmap'">
+      <TimelineSkeleton v-if="loading" />
+      <div
+        v-else-if="sprints.length === 0"
+        class="text-center py-20"
+      >
+        <UIcon
+          name="i-lucide-calendar-off"
+          class="text-muted text-4xl mb-4"
         />
+        <p class="text-muted text-sm">
+          No <code>sprint-status.yaml</code> found in <code>_bmad-output/</code>.
+        </p>
       </div>
 
-      <!-- Roadmap tab -->
-      <div v-show="activeTab === 'roadmap'">
-        <div
-          v-if="sprints.length === 0"
-          class="text-center py-20"
-        >
-          <UIcon
-            name="i-lucide-calendar-off"
-            class="text-muted text-4xl mb-4"
-          />
-          <p class="text-muted text-sm">
-            No <code>sprint-status.yaml</code> found in <code>_bmad-output/</code>.
-          </p>
-        </div>
-
-        <div
-          v-else
-          class="space-y-8"
-        >
-          <GlobalStats
-            :stories="stories"
-            :sprints="sprints"
-          />
-          <div>
-            <h3 class="text-lg font-semibold mb-4">
-              Epic Timeline
-            </h3>
-            <SprintTimeline :sprints="sprints" />
-          </div>
+      <div
+        v-else
+        class="space-y-8"
+      >
+        <GlobalStats
+          :stories="stories"
+          :sprints="sprints"
+        />
+        <div>
+          <h3 class="text-lg font-semibold mb-4">
+            Epic Timeline
+          </h3>
+          <SprintTimeline :sprints="sprints" />
         </div>
       </div>
+    </div>
 
-      <!-- Epics & Stories tab -->
-      <div v-show="activeTab === 'epics'">
-        <div
-          v-if="stories.length === 0"
-          class="text-center py-20"
-        >
-          <UIcon
-            name="i-lucide-file-search"
-            class="text-muted text-4xl mb-4"
-          />
-          <p class="text-muted text-sm">
-            No stories found in <code>sprint-status.yaml</code>.
-          </p>
-        </div>
-
-        <div
-          v-else
-          class="space-y-6"
-        >
-          <EpicProgressCards
-            :epics="epics"
-            :selected-epic="selectedEpic"
-            @select="selectedEpic = $event"
-          />
-
-          <StoryFilters
-            v-model:search="search"
-            v-model:status-filter="statusFilter"
-            v-model:priority-filter="priorityFilter"
-            :epics="epics"
-          />
-
-          <UTabs
-            :items="viewTabs"
-            default-value="table"
-          >
-            <template #table>
-              <StoriesTable :stories="filteredStories" />
-            </template>
-
-            <template #kanban>
-              <KanbanBoard :stories="filteredStories" />
-            </template>
-          </UTabs>
-        </div>
+    <!-- Epics & Stories tab -->
+    <div v-show="activeTab === 'epics'">
+      <div
+        v-if="loading"
+        class="space-y-6"
+      >
+        <CardSkeleton :count="4" />
+        <TableSkeleton />
+      </div>
+      <div
+        v-else-if="stories.length === 0"
+        class="text-center py-20"
+      >
+        <UIcon
+          name="i-lucide-file-search"
+          class="text-muted text-4xl mb-4"
+        />
+        <p class="text-muted text-sm">
+          No stories found in <code>sprint-status.yaml</code>.
+        </p>
       </div>
 
-      <!-- Documents tab -->
-      <div v-show="activeTab === 'documents'">
-        <div
-          v-if="documents.length === 0"
-          class="text-center py-20"
+      <div
+        v-else
+        class="space-y-6"
+      >
+        <EpicProgressCards
+          :epics="epics"
+          :selected-epic="selectedEpic"
+          @select="selectedEpic = $event"
+        />
+
+        <StoryFilters
+          v-model:search="search"
+          v-model:status-filter="statusFilter"
+          v-model:priority-filter="priorityFilter"
+          :epics="epics"
+        />
+
+        <UTabs
+          :items="viewTabs"
+          default-value="table"
         >
-          <UIcon
-            name="i-lucide-file-text"
-            class="text-muted text-4xl mb-4"
-          />
-          <p class="text-muted text-sm">
-            No documents found in <code>_bmad-output/</code>.
-          </p>
-        </div>
+          <template #table>
+            <StoriesTable :stories="filteredStories" />
+          </template>
 
-        <div
-          v-else
-          class="grid grid-cols-1 md:grid-cols-4 gap-6"
-        >
-          <!-- Sidebar: visible on desktop, hidden on mobile -->
-          <div class="hidden md:block md:col-span-1">
-            <UCard>
-              <DocumentTree
-                :items="documents"
-                :selected-path="selectedPath"
-                @select="selectDocument"
-              />
-            </UCard>
-          </div>
+          <template #kanban>
+            <KanbanBoard :stories="filteredStories" />
+          </template>
+        </UTabs>
+      </div>
+    </div>
 
-          <!-- Mobile: slideover for document tree -->
-          <USlideover
-            v-model:open="docTreeOpen"
-            title="Documents"
-            side="left"
-            class="md:hidden"
-          >
-            <template #body>
-              <DocumentTree
-                :items="documents"
-                :selected-path="selectedPath"
-                @select="selectDocument"
-              />
-            </template>
-          </USlideover>
+    <!-- Documents tab -->
+    <div v-show="activeTab === 'documents'">
+      <DocumentSkeleton v-if="loading" />
+      <div
+        v-else-if="documents.length === 0"
+        class="text-center py-20"
+      >
+        <UIcon
+          name="i-lucide-file-text"
+          class="text-muted text-4xl mb-4"
+        />
+        <p class="text-muted text-sm">
+          No documents found in <code>_bmad-output/</code>.
+        </p>
+      </div>
 
-          <div class="md:col-span-3">
-            <!-- Mobile: button to open tree -->
-            <UButton
-              label="Browse documents"
-              icon="i-lucide-panel-left"
-              variant="outline"
-              size="sm"
-              class="mb-4 md:hidden"
-              @click="docTreeOpen = true"
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-4 gap-6"
+      >
+        <!-- Sidebar: visible on desktop, hidden on mobile -->
+        <div class="hidden md:block md:col-span-1">
+          <UCard>
+            <DocumentTree
+              :items="documents"
+              :selected-path="selectedPath"
+              @select="selectDocument"
             />
+          </UCard>
+        </div>
 
-            <div
-              v-if="docContentLoading"
-              class="text-center py-20"
-            >
-              <UIcon
-                name="i-lucide-loader-2"
-                class="text-primary text-4xl animate-spin"
-              />
-            </div>
-            <template v-else-if="selectedPath">
-              <DocumentBreadcrumb
-                :path="selectedPath"
-                class="mb-4"
-              />
-              <DocumentViewer
-                :content="docContent"
-                :path="selectedPath"
-                :repo-owner="owner"
-                :repo-name="repo"
-              />
-            </template>
+        <!-- Mobile: slideover for document tree -->
+        <USlideover
+          v-model:open="docTreeOpen"
+          title="Documents"
+          side="left"
+          class="md:hidden"
+        >
+          <template #body>
+            <DocumentTree
+              :items="documents"
+              :selected-path="selectedPath"
+              @select="selectDocument"
+            />
+          </template>
+        </USlideover>
 
-            <div
-              v-else
-              class="text-center py-20"
-            >
-              <UIcon
-                name="i-lucide-file-text"
-                class="text-muted text-5xl mb-4"
-              />
-              <p class="text-muted">
-                Select a document from the sidebar to view its content.
-              </p>
-            </div>
+        <div class="md:col-span-3">
+          <!-- Mobile: button to open tree -->
+          <UButton
+            label="Browse documents"
+            icon="i-lucide-panel-left"
+            variant="outline"
+            size="sm"
+            class="mb-4 md:hidden"
+            @click="docTreeOpen = true"
+          />
+
+          <div
+            v-if="docContentLoading"
+            class="text-center py-20"
+          >
+            <UIcon
+              name="i-lucide-loader-2"
+              class="text-primary text-4xl animate-spin"
+            />
+          </div>
+          <template v-else-if="selectedPath">
+            <DocumentBreadcrumb
+              :path="selectedPath"
+              class="mb-4"
+            />
+            <DocumentViewer
+              :content="docContent"
+              :path="selectedPath"
+              :repo-owner="owner"
+              :repo-name="repo"
+            />
+          </template>
+
+          <div
+            v-else
+            class="text-center py-20"
+          >
+            <UIcon
+              name="i-lucide-file-text"
+              class="text-muted text-5xl mb-4"
+            />
+            <p class="text-muted">
+              Select a document from the sidebar to view its content.
+            </p>
           </div>
         </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>

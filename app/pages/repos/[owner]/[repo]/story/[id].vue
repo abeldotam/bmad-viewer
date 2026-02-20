@@ -51,15 +51,7 @@ useHead({
 </script>
 
 <template>
-  <div
-    v-if="repoLoading"
-    class="text-center py-20"
-  >
-    <UIcon
-      name="i-lucide-loader-2"
-      class="text-primary text-4xl animate-spin"
-    />
-  </div>
+  <StoryDetailSkeleton v-if="repoLoading" />
 
   <div v-else-if="story">
     <StoryHeader
@@ -70,15 +62,15 @@ useHead({
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
       <div class="lg:col-span-2 space-y-6">
-        <div
-          v-if="contentLoading"
-          class="text-center py-10"
-        >
-          <UIcon
-            name="i-lucide-loader-2"
-            class="text-primary text-2xl animate-spin"
-          />
-        </div>
+        <UCard v-if="contentLoading">
+          <div class="space-y-4">
+            <USkeleton class="h-5 w-2/3" />
+            <USkeleton class="h-4 w-full" />
+            <USkeleton class="h-4 w-5/6" />
+            <USkeleton class="h-4 w-4/5" />
+            <USkeleton class="h-32 w-full" />
+          </div>
+        </UCard>
         <UCard v-else-if="contentMissing">
           <div class="text-center py-6">
             <UIcon
