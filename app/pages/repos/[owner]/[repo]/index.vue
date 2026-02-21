@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import type { MDCParserResult } from '@nuxtjs/mdc'
+
 const route = useRoute()
 const router = useRouter()
 const owner = computed(() => route.params.owner as string)
 const repo = computed(() => route.params.repo as string)
+
 const { documents, sprints, stories, epics, loading, syncing, tokenError, fetchFileContent, refresh } = useRepoData()
 const { handleError } = useErrorHandler()
 
@@ -17,20 +20,26 @@ const tabs = [
 // --- Documents state ---
 const selectedPath = computed(() => (route.query.path as string) || '')
 const docContent = ref('')
+const parsedDocContent = ref<MDCParserResult | null>(null)
 const docContentLoading = ref(false)
 const docTreeOpen = ref(false)
 
 watch(selectedPath, async (path) => {
   if (!path) {
     docContent.value = ''
+    parsedDocContent.value = null
     return
   }
   docContentLoading.value = true
   try {
-    docContent.value = await fetchFileContent(path)
+    const raw = await fetchFileContent(path)
+    const { parseMarkdown } = await import('@nuxtjs/mdc/runtime')
+    parsedDocContent.value = await parseMarkdown(raw)
+    docContent.value = raw
   } catch (e) {
     handleError(e, 'Failed to load document')
     docContent.value = ''
+    parsedDocContent.value = null
   } finally {
     docContentLoading.value = false
   }
@@ -262,7 +271,7 @@ const viewTabs = [
               class="mb-4"
             />
             <DocumentViewer
-              :content="docContent"
+              :content="parsedDocContent || docContent"
               :path="selectedPath"
               :repo-owner="owner"
               :repo-name="repo"

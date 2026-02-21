@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { MDCParserResult } from '@nuxtjs/mdc'
+
 defineProps<{
-  content: string
+  content: string | MDCParserResult
 }>()
 </script>
 

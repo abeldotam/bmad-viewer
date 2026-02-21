@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Story } from '~~/shared/types/bmad'
+import type { MDCParserResult } from '@nuxtjs/mdc'
 
 const route = useRoute()
 const owner = computed(() => route.params.owner as string)
@@ -11,6 +12,7 @@ const { stories, sprints, loading: repoLoading, fetchFileContent } = useRepoData
 const story = ref<Story | null>(null)
 const contentLoading = ref(false)
 const contentMissing = ref(false)
+const parsedContent = ref<MDCParserResult | null>(null)
 
 const storyPRs = computed(() => {
   if (!story.value) return []
@@ -29,11 +31,14 @@ watch([repoLoading, storyId], async ([isLoading]) => {
 
   story.value = { ...found }
   contentMissing.value = false
+  parsedContent.value = null
 
   if (found.filePath) {
     contentLoading.value = true
     try {
       const content = await fetchFileContent(found.filePath)
+      const { parseMarkdown } = await import('@nuxtjs/mdc/runtime')
+      parsedContent.value = await parseMarkdown(content)
       story.value = { ...found, content }
     } catch {
       contentMissing.value = true
@@ -87,7 +92,7 @@ useHead({
         </UCard>
         <StoryContent
           v-else
-          :content="story.content || ''"
+          :content="parsedContent || story.content || ''"
         />
         <CommentForm
           :story-id="story.id"
