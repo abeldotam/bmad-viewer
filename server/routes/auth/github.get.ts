@@ -1,6 +1,6 @@
 export default defineOAuthGitHubEventHandler({
   config: {
-    scope: ['repo', 'read:user']
+    scope: ['public_repo', 'read:user']
   },
   async onSuccess(event, { user, tokens }) {
     await setUserSession(event, {
@@ -8,7 +8,9 @@ export default defineOAuthGitHubEventHandler({
         id: user.id,
         login: user.login,
         name: user.name || user.login,
-        avatarUrl: user.avatar_url,
+        avatarUrl: user.avatar_url
+      },
+      secure: {
         githubToken: tokens.access_token
       }
     })

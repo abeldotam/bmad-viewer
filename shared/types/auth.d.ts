@@ -4,6 +4,9 @@ declare module '#auth-utils' {
     login: string
     name: string
     avatarUrl: string
+  }
+
+  interface SecureSessionData {
     githubToken: string
   }
 }

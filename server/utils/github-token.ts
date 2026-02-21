@@ -10,7 +10,7 @@ export async function getGitHubToken(event: H3Event): Promise<string> {
 
   if (mode === 'multiuser') {
     const session = await requireUserSession(event)
-    const token = session.user?.githubToken as string | undefined
+    const token = session.secure?.githubToken as string | undefined
     if (!token) {
       throw createError({ statusCode: 401, statusMessage: 'GitHub token missing from session. Please sign in again.' })
     }

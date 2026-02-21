@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   const repo = query.repo as string
   const storyId = query.storyId as string
 
-  if (!owner || !repo) throw createError({ statusCode: 400, statusMessage: 'owner and repo are required' })
+  validateOwnerRepo(owner, repo)
 
   const token = await getGitHubToken(event)
   const octokit = createOctokit(token)

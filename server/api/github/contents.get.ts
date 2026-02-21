@@ -5,9 +5,8 @@ export default defineEventHandler(async (event) => {
   const path = query.path as string
   const branch = query.branch as string | undefined
 
-  if (!owner || !repo || !path) {
-    throw createError({ statusCode: 400, statusMessage: 'owner, repo, and path are required' })
-  }
+  validateOwnerRepo(owner, repo)
+  validatePath(path)
 
   const token = await getGitHubToken(event)
   const octokit = createOctokit(token)
