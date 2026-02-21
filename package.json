@@ -8,7 +8,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.87",
@@ -23,6 +24,8 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.13.0",
+    "@playwright/test": "^1.58.2",
+    "@seontechnologies/playwright-utils": "^3.14.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.2.0",
     "eslint": "^9.39.2",
