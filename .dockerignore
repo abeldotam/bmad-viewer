@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+.output/
+.nuxt/
+.nitro/
+dist/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Git
+.git/
+.gitignore
+
+# IDE & editor
+.vscode/
+.idea/
+.fleet/
+.cursor/
+.DS_Store
+
+# Tests
+test-results/
+playwright-report/
+blob-report/
+
+# CI/CD
+.github/
+
+# BMAD tooling (not needed at runtime)
+_bmad/

@@ -12,9 +12,13 @@ RUN pnpm build
 
 FROM node:22-alpine
 
+RUN addgroup -S app && adduser -S app -G app
+
 WORKDIR /app
 
-COPY --from=builder /app/.output .output
+COPY --from=builder --chown=app:app /app/.output .output
+
+USER app
 
 EXPOSE 3000
 

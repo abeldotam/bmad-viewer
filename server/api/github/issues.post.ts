@@ -7,8 +7,9 @@ export default defineEventHandler(async (event) => {
     labels: string[]
   }>(event)
 
-  if (!body.owner || !body.repo || !body.title || !body.body) {
-    throw createError({ statusCode: 400, statusMessage: 'owner, repo, title, and body are required' })
+  validateOwnerRepo(body.owner, body.repo)
+  if (!body.title || !body.body) {
+    throw createError({ statusCode: 400, statusMessage: 'title and body are required' })
   }
 
   const token = await getGitHubToken(event)
