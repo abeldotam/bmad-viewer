@@ -31,13 +31,31 @@ export async function listBmadFiles(octokit: Octokit, owner: string, repo: strin
       recursive: 'true'
     })
 
-    return data.tree
+    // Check if this is a WDS project (has _wds/ folder)
+    const hasWds = data.tree.some(item => item.path?.startsWith('_wds/'))
+
+    const bmadFiles = data.tree
       .filter(item => item.path?.startsWith('_bmad-output/'))
       .map(item => ({
         path: item.path!,
         type: item.type === 'tree' ? 'directory' as const : 'file' as const,
-        sha: item.sha
+        sha: item.sha,
+        source: 'bmad' as const
       }))
+
+    // Only include docs/ as WDS output if _wds/ folder exists
+    const wdsFiles = hasWds
+      ? data.tree
+          .filter(item => item.path?.startsWith('docs/'))
+          .map(item => ({
+            path: item.path!,
+            type: item.type === 'tree' ? 'directory' as const : 'file' as const,
+            sha: item.sha,
+            source: 'wds' as const
+          }))
+      : []
+
+    return [...bmadFiles, ...wdsFiles]
   } catch (e) {
     if (isGitHubAuthError(e)) throw e
     return []

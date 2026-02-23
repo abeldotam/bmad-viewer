@@ -4,7 +4,7 @@ export function useGitHub() {
   const api = useApi()
 
   async function fetchDocumentTree(owner: string, repo: string): Promise<BmadDocument[]> {
-    const files = await api<{ path: string, type: 'file' | 'directory' }[]>('/api/github/tree', {
+    const files = await api<{ path: string, type: 'file' | 'directory', source?: 'bmad' | 'wds' }[]>('/api/github/tree', {
       params: { owner, repo }
     })
 

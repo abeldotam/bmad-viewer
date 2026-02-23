@@ -210,7 +210,7 @@ const viewTabs = [
           class="text-muted text-4xl mb-4"
         />
         <p class="text-muted text-sm">
-          No documents found in <code>_bmad-output/</code>.
+          No documents found in <code>_bmad-output/</code> or WDS <code>docs/</code>.
         </p>
       </div>
 

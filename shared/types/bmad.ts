@@ -52,6 +52,7 @@ export interface BmadDocument {
   type: 'file' | 'directory'
   children?: BmadDocument[]
   content?: string
+  source?: 'bmad' | 'wds'
 }
 
 export interface Repository {
