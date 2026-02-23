@@ -250,7 +250,7 @@ export function useBmadParser() {
     }
   }
 
-  function buildDocumentTree(files: { path: string, type: 'file' | 'directory' }[]): BmadDocument[] {
+  function buildDocumentTree(files: { path: string, type: 'file' | 'directory', source?: 'bmad' | 'wds' }[]): BmadDocument[] {
     const root: BmadDocument[] = []
     const map = new Map<string, BmadDocument>()
 
@@ -263,6 +263,7 @@ export function useBmadParser() {
         name,
         path: file.path,
         type: file.type,
+        ...(file.source ? { source: file.source } : {}),
         ...(file.type === 'directory' ? { children: [] } : {})
       }
       map.set(file.path, doc)

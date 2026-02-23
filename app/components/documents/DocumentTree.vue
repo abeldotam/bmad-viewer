@@ -47,6 +47,10 @@ function getIcon(item: BmadDocument): string {
           class="shrink-0"
         />
         <span class="truncate">{{ item.name }}</span>
+        <span
+          v-if="item.source === 'wds' && !depth"
+          class="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-500"
+        >WDS</span>
         <UIcon
           v-if="item.type === 'directory'"
           :name="expanded.has(item.path) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
