@@ -17,7 +17,7 @@ definePageMeta({
           size: 'xl'
         }, {
           label: 'View on GitHub',
-          to: 'https://github.com/abel-music/bmad-viewer',
+          to: 'https://github.com/abeldotam/bmad-viewer',
           target: '_blank',
           icon: 'i-simple-icons-github',
           size: 'xl',
