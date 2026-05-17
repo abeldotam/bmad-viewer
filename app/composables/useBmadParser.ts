@@ -75,9 +75,47 @@ function titleFromFilename(file: string): string {
     .replace(/\b\w/g, c => c.toUpperCase())
 }
 
+function extractTopLevelYamlBlock(yamlContent: string, key: string): string | null {
+  const lines = yamlContent.split(/\r?\n/)
+  const start = lines.findIndex(line => line.startsWith(`${key}:`))
+  if (start === -1) return null
+
+  const block = [lines[start]!]
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i]!
+    if (/^\S/.test(line) && !line.startsWith('#')) break
+    block.push(line)
+  }
+
+  return block.join('\n')
+}
+
+function parseSprintStatusYaml(yamlContent: string): RawSprintStatus | null {
+  try {
+    return yaml.load(yamlContent) as RawSprintStatus | null
+  } catch {
+    const developmentStatusBlock = extractTopLevelYamlBlock(yamlContent, 'development_status')
+    if (!developmentStatusBlock) return null
+
+    // Some BMAD-generated files contain invalid top-level sections such as
+    // action_items, while development_status remains valid. Preserve the
+    // pieces needed by the roadmap parser and ignore the malformed sections.
+    const storyLocationBlock = extractTopLevelYamlBlock(yamlContent, 'story_location')
+    const fallbackYaml = [storyLocationBlock, developmentStatusBlock]
+      .filter((block): block is string => Boolean(block))
+      .join('\n')
+
+    try {
+      return yaml.load(fallbackYaml) as RawSprintStatus | null
+    } catch {
+      return null
+    }
+  }
+}
+
 export function useBmadParser() {
   function parseSprintStatus(yamlContent: string): { currentSprint: number, sprints: Sprint[] } {
-    const raw = yaml.load(yamlContent) as RawSprintStatus | null
+    const raw = parseSprintStatusYaml(yamlContent)
     if (!raw) {
       return { currentSprint: 0, sprints: [] }
     }
