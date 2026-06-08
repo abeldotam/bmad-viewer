@@ -2,8 +2,21 @@ import type { BmadDocument } from '~~/shared/types/bmad'
 
 export function useGitHub() {
   const api = useApi()
+  const { localRepoSlug } = useAppMode()
+
+  function isLocalRepo(owner: string, repo: string): boolean {
+    return localRepoSlug.value === `${owner}/${repo}`
+  }
 
   async function fetchDocumentTree(owner: string, repo: string): Promise<BmadDocument[]> {
+    if (isLocalRepo(owner, repo)) {
+      const files = await api<{ path: string, type: 'file' | 'directory', source?: 'bmad' | 'wds' }[]>('/api/local/tree', {
+        params: { path: '_bmad-output' }
+      })
+      const { buildDocumentTree } = useBmadParser()
+      return buildDocumentTree(files)
+    }
+
     const files = await api<{ path: string, type: 'file' | 'directory', source?: 'bmad' | 'wds' }[]>('/api/github/tree', {
       params: { owner, repo }
     })
@@ -13,6 +26,13 @@ export function useGitHub() {
   }
 
   async function fetchFileContent(owner: string, repo: string, path: string): Promise<string> {
+    if (isLocalRepo(owner, repo)) {
+      const data = await api<{ content: string }>('/api/local/contents', {
+        params: { path }
+      })
+      return data.content
+    }
+
     const data = await api<{ content: string }>('/api/github/contents', {
       params: { owner, repo, path }
     })

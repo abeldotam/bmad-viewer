@@ -5,3 +5,7 @@ services:
       - "3000:3000"
     env_file: .env
     restart: unless-stopped
+    # Uncomment and set LOCAL_REPO_HOST_PATH in .env to mount a local repo
+    # for the local filesystem source-of-truth feature (#28):
+    # volumes:
+    #   - "${LOCAL_REPO_HOST_PATH:?error}:/local-repo:ro"

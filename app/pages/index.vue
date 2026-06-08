@@ -27,8 +27,16 @@ definePageMeta({
       >
         <template #top>
           <div class="flex justify-center mb-6">
-            <img src="/logo-light.png" alt="BMAD Viewer" class="size-32 dark:hidden">
-            <img src="/logo-dark.png" alt="BMAD Viewer" class="size-32 hidden dark:block">
+            <img
+              src="/logo-light.png"
+              alt="BMAD Viewer"
+              class="size-32 dark:hidden"
+            >
+            <img
+              src="/logo-dark.png"
+              alt="BMAD Viewer"
+              class="size-32 hidden dark:block"
+            >
           </div>
         </template>
       </UPageHero>
