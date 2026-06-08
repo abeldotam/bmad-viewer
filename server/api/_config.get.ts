@@ -1,3 +1,4 @@
 export default defineEventHandler(() => ({
-  appMode: getAppMode()
+  appMode: getAppMode(),
+  localRepoSlug: useRuntimeConfig().localRepoSlug || ''
 }))

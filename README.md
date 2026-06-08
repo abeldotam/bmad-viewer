@@ -23,7 +23,7 @@ cd bmad-viewer
 cp .env.example .env
 
 # 2. Set your GitHub token in .env
-# NUXT_GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+# NUXT_GITHUB_TOKEN=ghp_xx...xxxx
 
 # 3. Run with Docker
 docker compose up -d
@@ -32,6 +32,25 @@ docker compose up -d
 Open [http://localhost:3000](http://localhost:3000). No login required.
 
 > **Without Docker:** `pnpm install && pnpm build && node .output/server/index.mjs`
+
+## Optional: Local Filesystem Source of Truth
+
+During active development, `sprint-status.yaml` is updated continuously by BMAD agents
+but only pushed to GitHub at natural checkpoints. To get live sprint state without
+waiting for a commit, you can serve sprint data from a locally mounted repository:
+
+1. Set the repo slug and host path in `.env`:
+   ```env
+   LOCAL_REPO_GITHUB_SLUG=owner/repo
+   LOCAL_REPO_HOST_PATH=/absolute/path/to/your/repo
+   ```
+
+2. Uncomment the `volumes` section in `docker-compose.yml`.
+
+3. Restart: `docker compose up -d`
+
+The app detects the slug match and reads sprint data directly from the mounted
+filesystem — no GitHub API calls, no rate limits, always current.
 
 ## Quick Start — Multi-user Mode
 

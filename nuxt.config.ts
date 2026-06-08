@@ -22,6 +22,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     githubToken: '',
+    localRepoSlug: '',
     oauth: {
       github: {
         clientId: '',
