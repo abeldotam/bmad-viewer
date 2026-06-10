@@ -130,6 +130,16 @@ bmad.example.com {
 }
 ```
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/homepage.png" alt="BMAD Viewer Homepage" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="BMAD Viewer Dashboard" width="800" />
+</p>
+
 ## Contributing
 
 1. Fork the repository
